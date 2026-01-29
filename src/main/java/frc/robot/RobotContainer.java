@@ -72,7 +72,7 @@ public boolean driverDriveControlEnabled = true;
     configureButtonBindings();
     initDashboard();
     // Configure default commands
-    m_robotDrive.setDefaultCommand(
+    /*m_robotDrive.setDefaultCommand(
         // The left stick controls translation of the robot.
         // Turning is controlled by the X axis of the right stick.
         new RunCommand(
@@ -86,7 +86,7 @@ public boolean driverDriveControlEnabled = true;
                     Math.abs(m_driverController.getRawAxis(2)) > 0.3 ? -m_driverController.getRawAxis(2) * ModuleConstants.kMaxModuleAngularSpeedRadiansPerSecond: 0,                    
                     m_fieldRelative),
             m_robotDrive));
-
+    */
   }
   /**
    * Use this method to define your button->command mappings. Buttons can be created by
@@ -97,18 +97,10 @@ public boolean driverDriveControlEnabled = true;
   private void configureButtonBindings() {  
     //new JoystickButton(m_driverController, 5).onTrue(new InstantCommand(() -> m_robotDrive.resetGyro(), m_robotDrive));
     new JoystickButton(m_driverController, 6).onTrue(new InstantCommand(() -> m_fieldRelative = !m_fieldRelative));
-	new JoystickButton(m_driverController, 5).whileTrue(
+	  /* new JoystickButton(m_driverController, 5).whileTrue(
         new InstantCommand(() -> robotMoveToAprilTag())
-    );
+    ); */
 	
-	/*if(poseToTarget != null && detectedTranslations2d != null){
-		new MoveToPosition(
-			m_robotDrive,
-			poseToTarget, // Pose to target from VisionSubsystem
-			detectedTranslations2d, // List of Translation2d from VisionSubsystem
-			m_fieldRelative // Field-relative boolean
-		);
-	}*/
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
     //new Trigger(m_driverController.getRawButton(0)).onTrue();
 
@@ -121,7 +113,7 @@ public boolean driverDriveControlEnabled = true;
     SmartDashboard.putNumber("Auto Selector", 0);
   }
 
-  public void robotMoveToAprilTag(){
+  /*public void robotMoveToAprilTag(){
 	// Calculate drivetrain commands from Joystick values
     double forward = Math.abs(m_driverController.getRawAxis(1)) > 0.05 ? -(m_driverController.getRawAxis(1)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
     double strafe = Math.abs(m_driverController.getRawAxis(0)) > 0.05 ? -(m_driverController.getRawAxis(0)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
@@ -171,7 +163,7 @@ public boolean driverDriveControlEnabled = true;
     
     // Command drivetrain motors based on target speeds
     m_robotDrive.drive(forward, strafe, turn, m_fieldRelative);
-  }
+  }*/
   
   public void updateDashboard(){
     if(m_Camera.isConnected()){
@@ -243,11 +235,11 @@ public boolean driverDriveControlEnabled = true;
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand(int autoNumber) {
-    return new RunCommand(()->m_robotDrive.drive(-1,0,0, true), m_robotDrive).withTimeout(3)
+    return new RunCommand(()->m_robotDrive.drive(-1,0,0, false), m_robotDrive).withTimeout(3)
 		.andThen(()->System.out.println("Auto Step 1 Complete")).withTimeout(2)
-		.andThen(()->m_robotDrive.drive(0,-1,0,true), m_robotDrive).withTimeout(3)
+		.andThen(()->m_robotDrive.drive(0,-1,0,false), m_robotDrive).withTimeout(3)
 		.andThen(()->System.out.println("Auto Step 2 Complete")).withTimeout(2)
-		.andThen(()->m_robotDrive.drive(0,0,1, true), m_robotDrive).withTimeout(3)
+		.andThen(()->m_robotDrive.drive(0,0,1, false), m_robotDrive).withTimeout(3)
 		.andThen(()->System.out.println("Auto Step 3 Complete")).withTimeout(2)
 		.withTimeout(3);
    // return m_PathMaker.createPath(m_robotDrive, new Pose2d(1,0,new Rotation2d()), List.of(), null)

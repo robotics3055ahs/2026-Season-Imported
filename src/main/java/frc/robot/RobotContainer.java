@@ -48,7 +48,7 @@ public class RobotContainer {
   // The robot's subsystems
 
   private final DriveSubsystem m_robotDrive = new DriveSubsystem();
-  private final PowerDistribution m_PDP = new PowerDistribution();
+  //private final PowerDistribution m_PDP = new PowerDistribution();
   private final PathMaker m_PathMaker = new PathMaker();
   private final VisionSubsystem m_robotVision = new VisionSubsystem();
   private final PhotonCamera m_Camera = m_robotVision.getPhotonCamera();
@@ -58,8 +58,6 @@ public class RobotContainer {
   Pose2d poseToTarget;
   Transform2d transformToTarget;
   List<Translation2d> detectedTranslations2d;
-
-public boolean driverDriveControlEnabled = true;
 
   // The driver's controller
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
@@ -72,7 +70,7 @@ public boolean driverDriveControlEnabled = true;
     configureButtonBindings();
     initDashboard();
     // Configure default commands
-    /*m_robotDrive.setDefaultCommand(
+    m_robotDrive.setDefaultCommand(
         // The left stick controls translation of the robot.
         // Turning is controlled by the X axis of the right stick.
         new RunCommand(
@@ -86,7 +84,6 @@ public boolean driverDriveControlEnabled = true;
                     Math.abs(m_driverController.getRawAxis(2)) > 0.3 ? -m_driverController.getRawAxis(2) * ModuleConstants.kMaxModuleAngularSpeedRadiansPerSecond: 0,                    
                     m_fieldRelative),
             m_robotDrive));
-    */
   }
   /**
    * Use this method to define your button->command mappings. Buttons can be created by
@@ -113,58 +110,6 @@ public boolean driverDriveControlEnabled = true;
     SmartDashboard.putNumber("Auto Selector", 0);
   }
 
-  /*public void robotMoveToAprilTag(){
-	// Calculate drivetrain commands from Joystick values
-    double forward = Math.abs(m_driverController.getRawAxis(1)) > 0.05 ? -(m_driverController.getRawAxis(1)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
-    double strafe = Math.abs(m_driverController.getRawAxis(0)) > 0.05 ? -(m_driverController.getRawAxis(0)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
-    double turn = Math.abs(m_driverController.getRawAxis(2)) > 0.3 ? -m_driverController.getRawAxis(2) * ModuleConstants.kMaxModuleAngularSpeedRadiansPerSecond: 0;
-    
-    // Vision movement speeds
-    double VISION_TURN_kP = 0.03; // Proportional turning constant to minimize yaw error
-    double VISION_STRAFE_kP = 0.1; // Proportional strafe constant to minimize distance error
-
-    // Read in relevant data from the Camera
-    boolean targetVisible = false;
-    double targetYaw = 0.0;
-    double targetRange = 0.0;
-    PhotonCamera camera = m_robotVision.getPhotonCamera();
-    var results = camera.getAllUnreadResults();
-    if (!results.isEmpty()) {
-      // Camera processed a new frame since last
-      // Get the last one in the list.
-      var result = results.get(results.size() - 1);
-      if (result.hasTargets()) {
-        // At least one AprilTag was seen by the camera
-        for (var target : result.getTargets()) {
-          if (target.getFiducialId() == 7) {
-            // Found Tag 7, record its information
-            targetYaw = target.getYaw();
-            targetRange =
-            PhotonUtils.calculateDistanceToTargetMeters(
-            0.5, // Measured with a tape measure, or in CAD.
-            1.435, // From 2024 game manual for ID 7
-            Units.degreesToRadians(-30.0), // Measured with a protractor, or in CAD.
-            Units.degreesToRadians(target.getPitch()));
-            targetVisible = true;
-          }
-        }
-      }
-    }
-    
-    // Auto-align when requested
-    if (m_driverController.getAButton() && targetVisible) {
-      // Driver wants auto-alignment to tag 7
-      // And, tag 7 is in sight, so we can turn toward it.
-      // Override the driver's turn and fwd/rev command with an automatic one
-      // That turns toward the tag, and gets the range right.
-      turn = (-targetYaw) * VISION_TURN_kP * ModuleConstants.kMaxModuleAngularSpeedRadiansPerSecond;
-      forward = (-targetRange) * VISION_STRAFE_kP * ModuleConstants.kMaxModuleAngularSpeedRadiansPerSecond;
-    }
-    
-    // Command drivetrain motors based on target speeds
-    m_robotDrive.drive(forward, strafe, turn, m_fieldRelative);
-  }*/
-  
   public void updateDashboard(){
     if(m_Camera.isConnected()){
       SmartDashboard.putBoolean("Camera Connected", true);
@@ -182,49 +127,13 @@ public boolean driverDriveControlEnabled = true;
       SmartDashboard.putBoolean("Camera Connected", false);
     }
     SmartDashboard.putBoolean("Field Relative?", m_fieldRelative);
-    SmartDashboard.putData("PDP Data", m_PDP);
+    //SmartDashboard.putData("PDP Data", m_PDP);
     SmartDashboard.putNumber("Match Time", Timer.getMatchTime());
     SmartDashboard.putData("Drive Subsystem", m_robotDrive);
   }
 
-  public void updateVisionTarget(){
-	int m_targetID = Constants.VisionConstants.hubTargetID;
-    Pose2d estimatedPose = m_robotVision.getEstimatedLocalPose();
-    if(estimatedPose != null){
-      SmartDashboard.putNumber("Vision X", estimatedPose.getX());
-      SmartDashboard.putNumber("Vision Y", estimatedPose.getY());
-      SmartDashboard.putNumber("Vision Rot", estimatedPose.getRotation().getDegrees());
-      SmartDashboard.putNumber("Vision Target:", m_targetID);
-    }
-    m_robotVision.updateCamera();
-    poseToTarget = m_robotVision.getPoseToTarget(m_targetID);
-    if(poseToTarget != null){
-      SmartDashboard.putNumber("Pose to Target X", poseToTarget.getX());
-      SmartDashboard.putNumber("Pose to Target Y", poseToTarget.getY());
-      SmartDashboard.putNumber("Pose to Target Rot", poseToTarget.getRotation().getDegrees());
-    }
-    transformToTarget = m_robotVision.getTargetTransform(m_targetID);
-    if(transformToTarget != null){
-      SmartDashboard.putNumber("Transform to Target X", transformToTarget.getTranslation().getX());
-      SmartDashboard.putNumber("Transform to Target Y", transformToTarget.getTranslation().getY());
-      SmartDashboard.putNumber("Transform to Target Rot", transformToTarget.getRotation().getDegrees());
-    }
-    detectedTranslations2d = m_robotVision.getDetectedTranslations2d(m_targetID);
-    if(detectedTranslations2d != null){
-        for(int i = 0; i < detectedTranslations2d.size(); i++){
-            SmartDashboard.putNumber("Detected Position " + i + " X", detectedTranslations2d.get(i).getX());
-            SmartDashboard.putNumber("Detected Position " + i + " Y", detectedTranslations2d.get(i).getY());
-        }
-    }
-  }
-  
-  /*public void photonVisionService() {
-    
-  }
-    */
   public void periodic() {
     updateDashboard();
-    updateVisionTarget();
     m_robotVision.updateCamera();
     //m_robotDrive.changeMaxSpeed(m_driverRJoystick.getRawAxis(0));    
   }

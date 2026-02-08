@@ -72,7 +72,11 @@ public class RobotContainer {
     VisionConstants.VISION_FORWARD_kI, 
     VisionConstants.VISION_FORWARD_kD
   );
-
+  PIDController m_visionStrafePID = new PIDController(
+    VisionConstants.VISION_STRAFE_kP, 
+    VisionConstants.VISION_STRAFE_kI, 
+    VisionConstants.VISION_STRAFE_kD
+  );
   // The driver's controller
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
   // private final Joystick m_driverRJoystick = new Joystick(OIConstants.kRightJoystickPort);
@@ -173,15 +177,15 @@ public class RobotContainer {
       double forwardOutput = -m_visionForwardPID.calculate(targetRange, -1);
       m_visionForward = Math.abs(forwardOutput) > VisionConstants.VISION_FORWARD_OUTPUT_DEADBAND ? forwardOutput : 0;
     }
-        if (targetVisible && m_driverController.getBButton()) {
+    else if (targetVisible && m_driverController.getBButton()) {
       // Driver wants auto-alignment to tag 23
       // And, tag 23 is in sight, so we can turn toward it.
       // Override the driver's turn and fwd/rev command with an automatic one
       // That turns toward the tag, and gets the range right.
       //turn = (VISION_DES_ANGLE_deg - targetYaw) * VISION_TURN_kP * Constants.Swerve.kMaxAngularSpeed;
       //forward = (VISION_DES_RANGE_m - targetRange) * VISION_STRAFE_kP * Constants.Swerve.kMaxLinearSpeed;
-      double turnOutput = m_visionTurnPID.calculate(targetYaw, 0);
-      m_visionTurn = Math.abs(turnOutput) > VisionConstants.VISION_TURN_OUTPUT_DEADBAND ? turnOutput : 0;
+      double strafeOutput = m_visionStrafePID.calculate(targetYaw, 0);
+      m_visionStrafe = Math.abs(strafeOutput) > VisionConstants.VISION_STRAFE_OUTPUT_DEADBAND ? strafeOutput : 0;
       double forwardOutput = -m_visionForwardPID.calculate(targetRange, -1);
       m_visionForward = Math.abs(forwardOutput) > VisionConstants.VISION_FORWARD_OUTPUT_DEADBAND ? forwardOutput : 0;
     }

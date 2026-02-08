@@ -165,10 +165,10 @@ public final class Constants {
     public static final double VISION_FORWARD_kD = 1;
     public static final double VISION_FORWARD_OUTPUT_DEADBAND = 0.005;
     //stafe PID control
-    public static final double STRAFE_FORWARD_kP = 15; // (m/s)
-    public static final double STRAFE_FORWARD_kI = 0.0005;
-    public static final double STRAFE_FORWARD_kD = 1;
-    public static final double STRAFE_FORWARD_OUTPUT_DEADBAND = 0.005;
+    public static final double VISION_STRAFE_kP = 0.3; // (m/s)
+    public static final double VISION_STRAFE_kI = 0.0000;
+    public static final double VISION_STRAFE_kD = 0.01;
+    public static final double VISION_STRAFE_OUTPUT_DEADBAND = ;
     // Camera constants
     public static final double cameraHeightMeters = 0.1063625; // 4.1825 inches
     //public static final double cameraYawSpeed = 0.1 * Math.PI; // similar to kMaxModuleAngularAccelerationRadiansPerSecondSquared

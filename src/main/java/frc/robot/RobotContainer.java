@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -14,6 +15,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.commands.driveCommands.MoveToPosition;
@@ -24,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.Timer;
@@ -51,13 +54,24 @@ public class RobotContainer {
   //private final PowerDistribution m_PDP = new PowerDistribution();
   private final PathMaker m_PathMaker = new PathMaker();
   private final VisionSubsystem m_robotVision = new VisionSubsystem();
-  private final PhotonCamera m_Camera = m_robotVision.getPhotonCamera();
+  private final PhotonCamera m_frontCamera = m_robotVision.getPhotonCamera();
   private boolean m_fieldRelative = true;
   public ShuffleboardTab tab;
-  // Target varialbe for vision subsystem
-  Pose2d poseToTarget;
-  Transform2d transformToTarget;
-  List<Translation2d> detectedTranslations2d;
+  // vision drive values
+  double m_visionForward;
+  double m_visionStrafe;
+  double m_visionTurn;
+  // vision PID
+  PIDController m_visionTurnPID = new PIDController(
+    VisionConstants.VISION_TURN_kP, 
+    VisionConstants.VISION_TURN_kI, 
+    VisionConstants.VISION_TURN_kD
+  );
+  PIDController m_visionForwardPID = new PIDController(
+    VisionConstants.VISION_FORWARD_kP, 
+    VisionConstants.VISION_FORWARD_kI, 
+    VisionConstants.VISION_FORWARD_kD
+  );
 
   // The driver's controller
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
@@ -70,6 +84,7 @@ public class RobotContainer {
     configureButtonBindings();
     initDashboard();
     // Configure default commands
+    /*
     m_robotDrive.setDefaultCommand(
         // The left stick controls translation of the robot.
         // Turning is controlled by the X axis of the right stick.
@@ -81,9 +96,19 @@ public class RobotContainer {
                     // converting them to actual units.
                     Math.abs(m_driverController.getRawAxis(1)) > 0.05 ? -(m_driverController.getRawAxis(1)) * DriveConstants.kMaxSpeedMetersPerSecond : 0,
                     Math.abs(m_driverController.getRawAxis(0)) > 0.05 ? -(m_driverController.getRawAxis(0)) * DriveConstants.kMaxSpeedMetersPerSecond : 0,
-                    Math.abs(m_driverController.getRawAxis(2)) > 0.3 ? -m_driverController.getRawAxis(2) * ModuleConstants.kMaxModuleAngularSpeedRadiansPerSecond: 0,                    
+                    Math.abs(m_driverController.getRawAxis(4)) > 0.3 ? -m_driverController.getRawAxis(4) * ModuleConstants.kMaxModuleAngularSpeedRadiansPerSecond: 0,                    
                     m_fieldRelative),
-            m_robotDrive));
+            m_robotDrive)); 
+            */
+      m_robotDrive.setDefaultCommand(
+        new RunCommand(
+          () -> 
+            m_robotDrive.drive(
+              m_visionForward, 
+              m_visionStrafe, 
+              m_visionTurn,
+              m_fieldRelative),
+          m_robotDrive));
   }
   /**
    * Use this method to define your button->command mappings. Buttons can be created by
@@ -91,8 +116,7 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then calling passing it to a
    * {@link JoystickButton}.
    */
-  private void configureButtonBindings() {  
-    //new JoystickButton(m_driverController, 5).onTrue(new InstantCommand(() -> m_robotDrive.resetGyro(), m_robotDrive));
+  private void configureButtonBindings() {    
     new JoystickButton(m_driverController, 6).onTrue(new InstantCommand(() -> m_fieldRelative = !m_fieldRelative));
 	  /* new JoystickButton(m_driverController, 5).whileTrue(
         new InstantCommand(() -> robotMoveToAprilTag())
@@ -105,13 +129,75 @@ public class RobotContainer {
     // cancelling on release.
     //m_driverController.b(0).whileTrue();
   }
+  
+  public void VisionMoveToTarget() {
+    // Calculate drivetrain commands from Joystick values
+    m_visionForward = Math.abs(m_driverController.getRawAxis(1)) > 0.05 ? -(m_driverController.getRawAxis(1)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
+    m_visionStrafe = Math.abs(m_driverController.getRawAxis(0)) > 0.05 ? -(m_driverController.getRawAxis(0)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
+    m_visionTurn = Math.abs(m_driverController.getRawAxis(4)) > 0.3 ? -m_driverController.getRawAxis(4) * ModuleConstants.kMaxModuleAngularSpeedRadiansPerSecond: 0;
+    
+    // Read in relevant data from the Camera
+    int m_targetID = VisionConstants.hubTargetID;
+    boolean targetVisible = false;
+    double targetYaw = 0.0;
+    double targetRange = 0.0;
+    PhotonTrackedTarget cameraTarget = m_robotVision.getCameraTarget();
+    if (cameraTarget != null) {
+      // Camera processed a new frame since last
+      // Get the last one in the list.
+      if (cameraTarget.getFiducialId() == m_targetID) {
+        // Found Tag 23, record its information
+        targetYaw = cameraTarget.getYaw();
+        targetRange =
+        PhotonUtils.calculateDistanceToTargetMeters(
+          VisionConstants.cameraHeightMeters, // Height of the camera off the ground on the (meters)
+          VisionConstants.hubHeightMeters, // Height of the center of the april tag off the ground (meters)
+          Units.degreesToRadians(-30.0), // Measured with a protractor, or in CAD.
+          Units.degreesToRadians(cameraTarget.getPitch())
+        );
+        SmartDashboard.putNumber("target range",targetRange);
+        targetVisible = true;
+      }
+    }
+    
+    // While button six is being pressed, auto align to april tag when it is visible
+    if (targetVisible && m_driverController.getAButton()) {
+      // Driver wants auto-alignment to tag 23
+      // And, tag 23 is in sight, so we can turn toward it.
+      // Override the driver's turn and fwd/rev command with an automatic one
+      // That turns toward the tag, and gets the range right.
+      //turn = (VISION_DES_ANGLE_deg - targetYaw) * VISION_TURN_kP * Constants.Swerve.kMaxAngularSpeed;
+      //forward = (VISION_DES_RANGE_m - targetRange) * VISION_STRAFE_kP * Constants.Swerve.kMaxLinearSpeed;
+      double turnOutput = m_visionTurnPID.calculate(targetYaw, 0);
+      m_visionTurn = Math.abs(turnOutput) > VisionConstants.VISION_TURN_OUTPUT_DEADBAND ? turnOutput : 0;
+      double forwardOutput = -m_visionForwardPID.calculate(targetRange, -1);
+      m_visionForward = Math.abs(forwardOutput) > VisionConstants.VISION_FORWARD_OUTPUT_DEADBAND ? forwardOutput : 0;
+    }
+        if (targetVisible && m_driverController.getBButton()) {
+      // Driver wants auto-alignment to tag 23
+      // And, tag 23 is in sight, so we can turn toward it.
+      // Override the driver's turn and fwd/rev command with an automatic one
+      // That turns toward the tag, and gets the range right.
+      //turn = (VISION_DES_ANGLE_deg - targetYaw) * VISION_TURN_kP * Constants.Swerve.kMaxAngularSpeed;
+      //forward = (VISION_DES_RANGE_m - targetRange) * VISION_STRAFE_kP * Constants.Swerve.kMaxLinearSpeed;
+      double turnOutput = m_visionTurnPID.calculate(targetYaw, 0);
+      m_visionTurn = Math.abs(turnOutput) > VisionConstants.VISION_TURN_OUTPUT_DEADBAND ? turnOutput : 0;
+      double forwardOutput = -m_visionForwardPID.calculate(targetRange, -1);
+      m_visionForward = Math.abs(forwardOutput) > VisionConstants.VISION_FORWARD_OUTPUT_DEADBAND ? forwardOutput : 0;
+    }
+    
+    // Command drivetrain motors based on target speeds
+    SmartDashboard.putNumber("forward", m_visionForward);
+    SmartDashboard.putNumber("strafe", m_visionStrafe);
+    SmartDashboard.putNumber("turn", m_visionTurn);
+  }
 
   public void initDashboard(){
     SmartDashboard.putNumber("Auto Selector", 0);
   }
 
   public void updateDashboard(){
-    if(m_Camera.isConnected()){
+    if(m_frontCamera.isConnected()){
       SmartDashboard.putBoolean("Camera Connected", true);
       PhotonTrackedTarget m_cameraTarget = m_robotVision.getCameraTarget();
       if(m_cameraTarget != null){
@@ -120,6 +206,7 @@ public class RobotContainer {
         SmartDashboard.putNumber("Camera Target Yaw", m_cameraTarget.getYaw());
         SmartDashboard.putNumber("Camera Target Area", m_cameraTarget.getArea());
         SmartDashboard.putString("Camera Target", m_cameraTarget.toString());
+        SmartDashboard.putNumber("Camera Skew", m_cameraTarget.getSkew());
       } else {
         SmartDashboard.putString("Camera Target", "No Target");
       }
@@ -134,6 +221,7 @@ public class RobotContainer {
 
   public void periodic() {
     updateDashboard();
+    VisionMoveToTarget();
     m_robotVision.updateCamera();
     //m_robotDrive.changeMaxSpeed(m_driverRJoystick.getRawAxis(0));    
   }

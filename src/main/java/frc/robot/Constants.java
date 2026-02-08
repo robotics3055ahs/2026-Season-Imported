@@ -5,6 +5,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -85,7 +86,7 @@ public final class Constants {
     public static final double kVoltPerMeterPerSecond = 0.413;
 
     // ===== Speed Limits =====
-    public static final double kMaxSpeedMetersPerSecond = 0.1;
+    public static final double kMaxSpeedMetersPerSecond = 5;
   }
 
   // ============================================================================
@@ -93,7 +94,7 @@ public final class Constants {
   // ============================================================================
   public static final class ModuleConstants {
     // ===== Module Speed & Acceleration Constraints =====
-    public static final double kMaxModuleAngularSpeedRadiansPerSecond = 4 * Math.PI;
+    public static final double kMaxModuleAngularSpeedRadiansPerSecond = 8 * Math.PI;
     public static final double kMaxModuleAngularAccelerationRadiansPerSecondSquared = 4 * Math.PI;
 
     // ===== Encoder Configuration =====
@@ -150,7 +151,28 @@ public final class Constants {
   // VISION CONSTANTS
   // ============================================================================
   public static final class VisionConstants {
-    public static final int hubTargetID = 22;
+    // hub constants
+    public static final int hubTargetID = 23;
+    public static final double hubHeightMeters = 0.64135; // 25.25 inches
+    // Turn PID control
+    public static final double VISION_TURN_kP = .25; // similar to kMaxModuleAngularAccelerationRadiansPerSecondSquared
+    public static final double VISION_TURN_kI = 0.000;
+    public static final double VISION_TURN_kD = 0.012;
+    public static final double VISION_TURN_OUTPUT_DEADBAND = 0.00;//seems more stable without deadband
+    // Forward PID control
+    public static final double VISION_FORWARD_kP = 15; // (m/s)
+    public static final double VISION_FORWARD_kI = 0.0005;
+    public static final double VISION_FORWARD_kD = 1;
+    public static final double VISION_FORWARD_OUTPUT_DEADBAND = 0.005;
+    //stafe PID control
+    public static final double STRAFE_FORWARD_kP = 15; // (m/s)
+    public static final double STRAFE_FORWARD_kI = 0.0005;
+    public static final double STRAFE_FORWARD_kD = 1;
+    public static final double STRAFE_FORWARD_OUTPUT_DEADBAND = 0.005;
+    // Camera constants
+    public static final double cameraHeightMeters = 0.1063625; // 4.1825 inches
+    //public static final double cameraYawSpeed = 0.1 * Math.PI; // similar to kMaxModuleAngularAccelerationRadiansPerSecondSquared
+    //public static final double cameraRangeSpeed = 0.5; // (m/s)
   }
 
   // ============================================================================

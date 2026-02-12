@@ -86,7 +86,7 @@ public final class Constants {
     public static final double kVoltPerMeterPerSecond = 0.413;
 
     // ===== Speed Limits =====
-    public static final double kMaxSpeedMetersPerSecond = 5;
+    public static double kMaxSpeedMetersPerSecond = 5;
   }
 
   // ============================================================================
@@ -152,7 +152,7 @@ public final class Constants {
   // ============================================================================
   public static final class VisionConstants {
     // hub constants
-    public static final int hubTargetID = 23;
+    public static int hubTargetID = 23;
     public static final double hubHeightMeters = 0.64135; // 25.25 inches
     // Turn PID control
     public static final double VISION_TURN_kP = .25; // similar to kMaxModuleAngularAccelerationRadiansPerSecondSquared
@@ -181,7 +181,12 @@ public final class Constants {
   public static final class OIConstants {
     // ===== Controller Ports =====
     public static final int kDriverControllerPort = 0;
-
+    // ===== Controller Constants =====
+    public static int driveForwardAxis = 1;
+    public static int driveStrafeAxis = 0;
+    public static int driveTurnAxis = 4;
+    // Auto Selected
+    public static int autoSelected = 0;
     // ===== Shooter Motor Ports =====
     public static final int shooterMotorPort1 = 30;
     public static final int shooterMotorPort2 = 31;
@@ -203,7 +208,7 @@ public final class Constants {
   public static final class AutoConstants {
     // ===== Speed & Acceleration Limits =====
     public static final double kMaxAutoSpeedMetersPerSecond = 1.0;
-    public static final double kMaxAccelerationMetersPerSecondSquared = 3.0;
+    public static final double kMaxAccelerationMetersPerSecondSquared = 3;
     public static final double kMaxAngularSpeedRadiansPerSecond = 2 * Math.PI;
     public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
 

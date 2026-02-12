@@ -120,8 +120,9 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then calling passing it to a
    * {@link JoystickButton}.
    */
-  private void configureButtonBindings() {    
-    new JoystickButton(m_driverController, 6).onTrue(new InstantCommand(() -> m_fieldRelative = !m_fieldRelative));
+  private void configureButtonBindings() {
+    new JoystickButton(m_driverController, 7).onTrue(new InstantCommand(() -> m_robotDrive.resetGyro()));
+    new JoystickButton(m_driverController, 8).onTrue(new InstantCommand(() -> m_fieldRelative = !m_fieldRelative));
 	  /* new JoystickButton(m_driverController, 5).whileTrue(
         new InstantCommand(() -> robotMoveToAprilTag())
     ); */
@@ -136,10 +137,11 @@ public class RobotContainer {
   
   public void VisionMoveToTarget() {
     // Calculate drivetrain commands from Joystick values
-    m_visionForward = Math.abs(m_driverController.getRawAxis(1)) > 0.05 ? -(m_driverController.getRawAxis(1)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
-    m_visionStrafe = Math.abs(m_driverController.getRawAxis(0)) > 0.05 ? -(m_driverController.getRawAxis(0)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
-    m_visionTurn = Math.abs(m_driverController.getRawAxis(4)) > 0.3 ? -m_driverController.getRawAxis(4) * ModuleConstants.kMaxModuleAngularSpeedRadiansPerSecond: 0;
-    
+    m_visionForward = Math.abs(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) > 0.05 ? -(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
+    m_visionStrafe = Math.abs(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) > 0.05 ? -(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
+    m_visionTurn = Math.abs(m_driverController.getRawAxis(OIConstants.driveTurnAxis)) > 0.3 ? -m_driverController.getRawAxis(OIConstants.driveTurnAxis) * ModuleConstants.kMaxModuleAngularSpeedRadiansPerSecond: 0;
+    // temp field centric boolean
+    boolean wasFieldRelative = false;
     // Read in relevant data from the Camera
     int m_targetID = VisionConstants.hubTargetID;
     boolean targetVisible = false;
@@ -147,10 +149,8 @@ public class RobotContainer {
     double targetRange = 0.0;
     PhotonTrackedTarget cameraTarget = m_robotVision.getCameraTarget();
     if (cameraTarget != null) {
-      // Camera processed a new frame since last
-      // Get the last one in the list.
       if (cameraTarget.getFiducialId() == m_targetID) {
-        // Found Tag 23, record its information
+        // Found Desired Tag, record its information
         targetYaw = cameraTarget.getYaw();
         targetRange =
         PhotonUtils.calculateDistanceToTargetMeters(
@@ -164,40 +164,49 @@ public class RobotContainer {
       }
     }
     
-    // While button six is being pressed, auto align to april tag when it is visible
+    // While button A is being pressed, auto align ANGLE to april tag
     if (targetVisible && m_driverController.getAButton()) {
-      // Driver wants auto-alignment to tag 23
-      // And, tag 23 is in sight, so we can turn toward it.
-      // Override the driver's turn and fwd/rev command with an automatic one
-      // That turns toward the tag, and gets the range right.
-      //turn = (VISION_DES_ANGLE_deg - targetYaw) * VISION_TURN_kP * Constants.Swerve.kMaxAngularSpeed;
-      //forward = (VISION_DES_RANGE_m - targetRange) * VISION_STRAFE_kP * Constants.Swerve.kMaxLinearSpeed;
+      if (m_fieldRelative) {
+        m_fieldRelative = false;
+        wasFieldRelative = true;
+      } else {
+        wasFieldRelative = false;
+      }
       double turnOutput = m_visionTurnPID.calculate(targetYaw, 0);
       m_visionTurn = Math.abs(turnOutput) > VisionConstants.VISION_TURN_OUTPUT_DEADBAND ? turnOutput : 0;
-      double forwardOutput = -m_visionForwardPID.calculate(targetRange, -1);
-      m_visionForward = Math.abs(forwardOutput) > VisionConstants.VISION_FORWARD_OUTPUT_DEADBAND ? forwardOutput : 0;
     }
-    else if (targetVisible && m_driverController.getBButton()) {
-      // Driver wants auto-alignment to tag 23
-      // And, tag 23 is in sight, so we can turn toward it.
-      // Override the driver's turn and fwd/rev command with an automatic one
-      // That turns toward the tag, and gets the range right.
-      //turn = (VISION_DES_ANGLE_deg - targetYaw) * VISION_TURN_kP * Constants.Swerve.kMaxAngularSpeed;
-      //forward = (VISION_DES_RANGE_m - targetRange) * VISION_STRAFE_kP * Constants.Swerve.kMaxLinearSpeed;
+    // While button B is being pressed, auto align STRAFE & FORWARD to april tag
+    if (targetVisible && m_driverController.getBButton()) {
+      if (m_fieldRelative) {
+        m_fieldRelative = false;
+        wasFieldRelative = true;
+      } else {
+        wasFieldRelative = false;
+      }
       double strafeOutput = m_visionStrafePID.calculate(targetYaw, 0);
       m_visionStrafe = Math.abs(strafeOutput) > VisionConstants.VISION_STRAFE_OUTPUT_DEADBAND ? strafeOutput : 0;
       double forwardOutput = -m_visionForwardPID.calculate(targetRange, -1);
       m_visionForward = Math.abs(forwardOutput) > VisionConstants.VISION_FORWARD_OUTPUT_DEADBAND ? forwardOutput : 0;
     }
-    
+    if (wasFieldRelative){
+      SmartDashboard.putBoolean("Field Relative?", m_fieldRelative);
+      m_fieldRelative = true;
+    }
     // Command drivetrain motors based on target speeds
     SmartDashboard.putNumber("forward", m_visionForward);
     SmartDashboard.putNumber("strafe", m_visionStrafe);
     SmartDashboard.putNumber("turn", m_visionTurn);
+    SmartDashboard.putBoolean("wasFieldRelative ?", wasFieldRelative);
   }
 
   public void initDashboard(){
-    SmartDashboard.putNumber("Auto Selector", 0);
+    SmartDashboard.putNumber("Auto Selector", OIConstants.autoSelected);
+    SmartDashboard.putNumber("Chosen Hub Target", VisionConstants.hubTargetID);
+    // Changable constants that will be updated from updateConstants()
+    SmartDashboard.putNumber("Speed", DriveConstants.kMaxSpeedMetersPerSecond);
+    SmartDashboard.putNumber("Forward Axis", (int) OIConstants.driveForwardAxis);
+    SmartDashboard.putNumber("Strafe Axis", (int) OIConstants.driveStrafeAxis);
+    SmartDashboard.putNumber("Turn Axis", (int) OIConstants.driveTurnAxis);
   }
 
   public void updateDashboard(){
@@ -223,8 +232,28 @@ public class RobotContainer {
     SmartDashboard.putData("Drive Subsystem", m_robotDrive);
   }
 
+  public void updateConstants(){
+    // Speed updater
+    double tempSpeed = SmartDashboard.getNumber("Speed", 5);
+    DriveConstants.kMaxSpeedMetersPerSecond = tempSpeed;
+    // Controller axis updater
+    int tempForwardAxis = (int) SmartDashboard.getNumber("Forward Axis", 1);
+    int tempStrafeAxis = (int) SmartDashboard.getNumber("Strafe Axis", 0);
+    int tempTurnAxis = (int) SmartDashboard.getNumber("Turn Axis", 4);
+    OIConstants.driveForwardAxis = tempForwardAxis;
+    OIConstants.driveStrafeAxis = tempStrafeAxis;
+    OIConstants.driveTurnAxis = tempTurnAxis;
+    // Auto updater
+    int tempAuto = (int) SmartDashboard.getNumber("Auto Selector", -1);
+    OIConstants.autoSelected = tempAuto;
+    // Hub updater
+    int tempHub = (int) SmartDashboard.getNumber("Chosen Hub Target", 1);
+    VisionConstants.hubTargetID = tempHub;
+  }
+
   public void periodic() {
     updateDashboard();
+    updateConstants();
     VisionMoveToTarget();
     m_robotVision.updateCamera();
     //m_robotDrive.changeMaxSpeed(m_driverRJoystick.getRawAxis(0));    
@@ -236,13 +265,18 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand(int autoNumber) {
-    return new RunCommand(()->m_robotDrive.drive(-1,0,0, false), m_robotDrive).withTimeout(3)
-		.andThen(()->System.out.println("Auto Step 1 Complete")).withTimeout(2)
-		.andThen(()->m_robotDrive.drive(0,-1,0,false), m_robotDrive).withTimeout(3)
-		.andThen(()->System.out.println("Auto Step 2 Complete")).withTimeout(2)
-		.andThen(()->m_robotDrive.drive(0,0,1, false), m_robotDrive).withTimeout(3)
-		.andThen(()->System.out.println("Auto Step 3 Complete")).withTimeout(2)
-		.withTimeout(3);
+    switch(autoNumber){
+      case 0:
+        return new 
+        RunCommand(() -> m_robotDrive.drive(1,1,1,true), m_robotDrive).withTimeout(3);
+      default:
+        return new 
+          RunCommand(()->m_robotDrive.drive(1,0,0, true), m_robotDrive).withTimeout(3)
+          .andThen(()->m_robotDrive.drive(0,0,1,true), m_robotDrive).withTimeout(3)
+          .andThen(()->m_robotDrive.drive(1,0,0, true), m_robotDrive).withTimeout(3)
+          .withTimeout(0);
+    }
+    
    // return m_PathMaker.createPath(m_robotDrive, new Pose2d(1,0,new Rotation2d()), List.of(), null)
     //.andThen(new ReefMoveToPosition(2, 1, m_ladder, m_robotDrive, m_intake))
     //.andThen(new IntakeOut(m_intake));

@@ -10,7 +10,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
-
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -86,7 +85,7 @@ public final class Constants {
     public static final double kVoltPerMeterPerSecond = 0.413;
 
     // ===== Speed Limits =====
-    public static double kMaxSpeedMetersPerSecond = 5;
+    public static double kMaxSpeedMetersPerSecond = 10;//5
   }
 
   // ============================================================================
@@ -94,8 +93,8 @@ public final class Constants {
   // ============================================================================
   public static final class ModuleConstants {
     // ===== Module Speed & Acceleration Constraints =====
-    public static final double kMaxModuleAngularSpeedRadiansPerSecond = 8 * Math.PI;
-    public static final double kMaxModuleAngularAccelerationRadiansPerSecondSquared = 4 * Math.PI;
+    public static final double kMaxModuleAngularSpeedRadiansPerSecond = 100 * Math.PI;//8
+    public static final double kMaxModuleAngularAccelerationRadiansPerSecondSquared = 6 * Math.PI;//4
 
     // ===== Encoder Configuration =====
     public static final int kEncoderCPR = 4096;

@@ -237,12 +237,12 @@ public class RobotContainer {
     double tempSpeed = SmartDashboard.getNumber("Speed", 5);
     DriveConstants.kMaxSpeedMetersPerSecond = tempSpeed;
     // Controller axis updater
-    int tempForwardAxis = (int) SmartDashboard.getNumber("Forward Axis", 1);
-    int tempStrafeAxis = (int) SmartDashboard.getNumber("Strafe Axis", 0);
-    int tempTurnAxis = (int) SmartDashboard.getNumber("Turn Axis", 4);
-    OIConstants.driveForwardAxis = tempForwardAxis;
-    OIConstants.driveStrafeAxis = tempStrafeAxis;
-    OIConstants.driveTurnAxis = tempTurnAxis;
+    // int tempForwardAxis = (int) SmartDashboard.getNumber("Forward Axis", 1);
+    // int tempStrafeAxis = (int) SmartDashboard.getNumber("Strafe Axis", 0);
+    // int tempTurnAxis = (int) SmartDashboard.getNumber("Turn Axis", 4);
+    // OIConstants.driveForwardAxis = tempForwardAxis;
+    // OIConstants.driveStrafeAxis = tempStrafeAxis;
+    // OIConstants.driveTurnAxis = tempTurnAxis;
     // Auto updater
     int tempAuto = (int) SmartDashboard.getNumber("Auto Selector", -1);
     OIConstants.autoSelected = tempAuto;
@@ -264,78 +264,13 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
-  public Command getAutonomousCommand(int autoNumber) {
+  public Command getAutonomousCommand() {
+    int autoNumber = OIConstants.autoSelected;
     switch(autoNumber){
       case 0:
-        return new 
-        RunCommand(() -> m_robotDrive.drive(1,1,1,true), m_robotDrive).withTimeout(3);
+        return new InstantCommand();
       default:
-        return new 
-          RunCommand(()->m_robotDrive.drive(1,0,0, true), m_robotDrive).withTimeout(3)
-          .andThen(()->m_robotDrive.drive(0,0,1,true), m_robotDrive).withTimeout(3)
-          .andThen(()->m_robotDrive.drive(1,0,0, true), m_robotDrive).withTimeout(3)
-          .withTimeout(0);
+        return new InstantCommand();
     }
-    
-   // return m_PathMaker.createPath(m_robotDrive, new Pose2d(1,0,new Rotation2d()), List.of(), null)
-    //.andThen(new ReefMoveToPosition(2, 1, m_ladder, m_robotDrive, m_intake))
-    //.andThen(new IntakeOut(m_intake));
-    
   }
-    //return (new MoveToPosition(m_robotDrive, new Pose2d(0,1,new Rotation2d()), List.of(), false).andThen(new IntakeIn(m_intake).withTimeout(2)))
-    //  .andThen(new MoveToPosition(m_robotDrive, new Pose2d(1,0,new Rotation2d()), List.of(), false));
-
-
-  //   if (Timer.getMatchTime() > 13) {
-  //   m_robotDrive.m_frontLeft.m_driveMotor.set(0.4);
-  //   m_robotDrive.m_frontLeft.m_turningMotor.set(autoNumber);
-  // }   
-  /*return pathMaker.createPath(
-    m_robotDrive,
-    new Pose2d(1, 0, new Rotation2d(0)),
-    List.of(),
-    false);*/
-    //.andThen(pathMaker.createPath(
-    //m_robotDrive,
-    //new Pose2d(0,0.5, new Rotation2d(0)),
-    //List.of(),
-    //false));
-  
-  //ParallelRaceGroup cmd = new RunCommand(()->m_robotDrive.drive(2,0,0,false)).withTimeout(3);
-  // return cmd;
-    
-      
-      /*.andThen(pathMaker.createPath(
-      m_robotDrive,
-      new Pose2d(-3,-3, new Rotation2d(0)),
-      List.of(new Translation2d(-3,0)),
-      false));
-      */
-  
-  // public Command getTestCommand(int testNumber){
-    //return new ReefMoveToPosition(1,1,m_ladder,m_robotDrive,m_intake);
-    //return new MoveToPosition(m_robotDrive, new Pose2d(5,5,new Rotation2d()), List.of(new Translation2d(5,0)), false)
-    //.andThen(new MoveToPosition(m_robotDrive, new Pose2d(0,0,new Rotation2d()), List.of(), true));
-
-    /*
-    switch(testNumber){
-      case 1: 
-        return new MoveToPosition(
-          m_robotDrive,
-          new Pose2d(0.5, -0.5, new Rotation2d(0)),
-          List.of(),
-          false
-        );
-      case 2:
-        return new ReefMoveToPosition(1, 1, m_ladder, m_robotDrive, m_intake);//reefPathMaker.createCommand(1, 1, m_ladder, m_robotDrive, m_intake);
-      case 3:
-        return new LadderMoveToPosition(m_ladder, Constants.LadderConstants.bottomStalkPosition);
-      default:
-        return new Command() {
-          
-        };
-        
-    }
-        */
-  // }
 }

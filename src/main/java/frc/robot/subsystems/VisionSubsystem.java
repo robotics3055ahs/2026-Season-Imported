@@ -29,9 +29,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 @Logged
 public class VisionSubsystem extends SubsystemBase {
-  /** Creates a new ExampleSubsystem. */
-  
-  static AprilTagFieldLayout tagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
+  static AprilTagFieldLayout tagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
   public boolean cameraConnected = true; 
   
   static Transform3d robotToFrontCamera = new Transform3d(new Translation3d(0.305,-0.305,0.1), new Rotation3d(0,0,0));

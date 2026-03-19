@@ -191,14 +191,14 @@ public final class Constants {
     public static final int shooterMotorPort2 = 31;
 
     // ===== Shooter Speed =====
-    public static final double shooterSpeed = 0.75;
+    public static final double shooterSpeedRPM = 3000;
 
     // ===== Intake Motor Ports =====
     public static final int intakeMotorPort1 = 40;
     public static final int intakeMotorPort2 = 41;
 
     // ===== Intake Speed =====
-    public static final double intakeSpeed = 0.75;
+    public static final double intakeSpeedRPM = 3000;
   }
 
   // ============================================================================

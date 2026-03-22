@@ -129,29 +129,11 @@ public final class Constants {
   }
 
   // ============================================================================
-  // LADDER CONSTANTS
-  // ============================================================================
-  public static final class LadderConstants {
-    // ===== Motor Ports =====
-    public static final int ladderMotorPort1 = 21;
-    public static final int ladderMotorPort2 = 22;
-
-    // ===== Motor Speed =====
-    public static final double ladderMotorSpeed = 1.00;
-
-    // ===== Position Setpoints =====
-    public static final double topStalkPosition = 26.5;
-    public static final double middleStalkPosition = 14.14;
-    public static final double bottomStalkPosition = 6.07;
-    public static final double zeroPosition = 0.0;
-  }
-
-  // ============================================================================
   // VISION CONSTANTS
   // ============================================================================
   public static final class VisionConstants {
     // hub constants
-    public static int hubTargetID = 23;
+    public static int hubTargetID = 9;
     public static final double hubHeightMeters = 0.64135; // 25.25 inches
     // Turn PID control
     public static final double VISION_TURN_kP = .25; // similar to kMaxModuleAngularAccelerationRadiansPerSecondSquared
@@ -186,19 +168,42 @@ public final class Constants {
     public static int driveTurnAxis = 4;
     // Auto Selected
     public static int autoSelected = 0;
-    // ===== Shooter Motor Ports =====
-    public static final int shooterMotorPort1 = 30;
-    public static final int shooterMotorPort2 = 31;
 
-    // ===== Shooter Speed =====
-    public static final double shooterSpeedRPM = 3000;
+    // Motor Ports
+    public static final int intakeSwingerPotentiometerPort = 0; // PWM channel
+    public static final int intakeSwingerPort = 9; // PWM channel
+    public static final int intakeRunnerKrakenPort = 10;
+    public static final int ballRollerNeoPort = 11;
+    public static final int shooterMotorPort1 = 12;
+    public static final int shooterMotorPort2 = 13;
+    public static final int shooterMotorPort3 = 14;
+    public static final int shooterMotorPort4 = 15;
+  }
 
-    // ===== Intake Motor Ports =====
-    public static final int intakeMotorPort1 = 40;
-    public static final int intakeMotorPort2 = 41;
-
-    // ===== Intake Speed =====
-    public static final double intakeSpeedRPM = 3000;
+  public static final class PIDConstants {
+    public static final class IntakeSwingerConstants { // This motor is a neo
+      public static final double kP = 0.00014;
+      public static final double kI = 0.00004;
+      public static final double kD = 0.00009;
+      public static final double potentiometerTargetDegrees = 100.0;
+      public static final double potentiometerDegrees = 270.0;
+      public static final double potentiometerOffset = 0.0;
+      public static final double ArmDegrees = potentiometerDegrees / 2;//1:2 ratio
+      //get degrees by multipling the value returned by the ADC with the Arm degrees constant
+    }
+    public static final class BallRollerConstants { // This motor is a neo
+      public static final double kP = 0.00014;
+      public static final double kI = 0.00004;
+      public static final double kD = 0.00009;
+    }
+    public static final class ShooterConstants { // 4 neo motors
+      public static final double shooterSpeedRPM = 3000;
+      public static final double kP = 0.00014;
+      public static final double kI = 0.00004;
+      public static final double kD = 0.00009;
+      public static double kFF_LinearResponce = 5654;//5654
+      public static double kFeedForward = shooterSpeedRPM / kFF_LinearResponce;
+    }
   }
 
   // ============================================================================

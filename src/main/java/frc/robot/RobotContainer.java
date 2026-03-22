@@ -15,11 +15,14 @@ import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.ModuleConstants;
 import frc.robot.Constants.OIConstants;
+import frc.robot.Constants.PIDConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.commands.driveCommands.MoveToPosition;
 import frc.robot.commands.PathMaker;
+import frc.robot.commands.IntakeCommand;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
@@ -32,15 +35,9 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
-import java.util.List;
-
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonTrackedTarget;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
@@ -55,6 +52,7 @@ public class RobotContainer {
   private final PathMaker m_PathMaker = new PathMaker();
   private final VisionSubsystem m_robotVision = new VisionSubsystem();
   private final PhotonCamera m_frontCamera = m_robotVision.getPhotonCamera();
+  private final ShooterSubsystem m_shooter = new ShooterSubsystem();
   private boolean m_fieldRelative = true;
   public ShuffleboardTab tab;
   // vision drive values
@@ -81,39 +79,24 @@ public class RobotContainer {
   private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
   // private final Joystick m_driverRJoystick = new Joystick(OIConstants.kRightJoystickPort);
 
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
-  public RobotContainer() {
-    // Configure the button bindings
-    
-    configureButtonBindings();
-    initDashboard();
-    // Configure default commands
-    /*
-    m_robotDrive.setDefaultCommand(
-        // The left stick controls translation of the robot.
-        // Turning is controlled by the X axis of the right stick.
-        new RunCommand(
-            () ->
-                m_robotDrive.drive(
-                    // Multiply by max speed to map the joystick unitless inputs to actual units.
-                    // This will map the [-1, 1] to [max speed backwards, max speed forwards],
-                    // converting them to actual units.
-                    Math.abs(m_driverController.getRawAxis(1)) > 0.05 ? -(m_driverController.getRawAxis(1)) * DriveConstants.kMaxSpeedMetersPerSecond : 0,
-                    Math.abs(m_driverController.getRawAxis(0)) > 0.05 ? -(m_driverController.getRawAxis(0)) * DriveConstants.kMaxSpeedMetersPerSecond : 0,
-                    Math.abs(m_driverController.getRawAxis(4)) > 0.3 ? -m_driverController.getRawAxis(4) * ModuleConstants.kMaxModuleAngularSpeedRadiansPerSecond: 0,                    
-                    m_fieldRelative),
-            m_robotDrive)); 
-            */
-      m_robotDrive.setDefaultCommand(
-        new RunCommand(
-          () -> 
-            m_robotDrive.drive(
-              m_visionForward, 
-              m_visionStrafe, 
-              m_visionTurn,
-              m_fieldRelative),
-          m_robotDrive));
-  }
+/** The container for the robot. Contains subsystems, OI devices, and commands. */
+public RobotContainer() {
+  // Configure the button bindings
+  
+  configureButtonBindings();
+  initDashboard();
+  // Configure default commands
+  m_robotDrive.setDefaultCommand(
+    new RunCommand(
+      () -> 
+        m_robotDrive.drive(
+        m_visionForward, 
+        m_visionStrafe, 
+        m_visionTurn,
+        m_fieldRelative),
+    m_robotDrive)
+  );
+}
   /**
    * Use this method to define your button->command mappings. Buttons can be created by
    * instantiating a {@link edu.wpi.first.wpilibj.GenericHID} or one of its subclasses ({@link
@@ -123,16 +106,7 @@ public class RobotContainer {
   private void configureButtonBindings() {
     new JoystickButton(m_driverController, 7).onTrue(new InstantCommand(() -> m_robotDrive.resetGyro()));
     new JoystickButton(m_driverController, 8).onTrue(new InstantCommand(() -> m_fieldRelative = !m_fieldRelative));
-	  /* new JoystickButton(m_driverController, 5).whileTrue(
-        new InstantCommand(() -> robotMoveToAprilTag())
-    ); */
-	
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    //new Trigger(m_driverController.getRawButton(0)).onTrue();
-
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
-    //m_driverController.b(0).whileTrue();
+    new JoystickButton(m_driverController, 5).toggleOnTrue(new IntakeCommand(m_shooter));
   }
   
   public void VisionMoveToTarget() {
@@ -207,6 +181,19 @@ public class RobotContainer {
     SmartDashboard.putNumber("Forward Axis", (int) OIConstants.driveForwardAxis);
     SmartDashboard.putNumber("Strafe Axis", (int) OIConstants.driveStrafeAxis);
     SmartDashboard.putNumber("Turn Axis", (int) OIConstants.driveTurnAxis);
+    // PID for swinger
+    SmartDashboard.putNumber(
+      "Swinger kP", 
+      PIDConstants.IntakeSwingerConstants.kP
+    );
+    SmartDashboard.putNumber(
+      "Swinger kI", 
+      PIDConstants.IntakeSwingerConstants.kI
+    );
+    SmartDashboard.putNumber(
+      "Swinger kD", 
+      PIDConstants.IntakeSwingerConstants.kD
+    );
   }
 
   public void updateDashboard(){
@@ -249,6 +236,20 @@ public class RobotContainer {
     // Hub updater
     int tempHub = (int) SmartDashboard.getNumber("Chosen Hub Target", 1);
     VisionConstants.hubTargetID = tempHub;
+    // Swinger PID
+    double tempKP = SmartDashboard.getNumber(
+      "Swinger kP", 
+      PIDConstants.IntakeSwingerConstants.kP
+    );
+    double tempKI = SmartDashboard.getNumber(
+      "Swinger kI", 
+      PIDConstants.IntakeSwingerConstants.kI
+    );
+    double tempKD = SmartDashboard.getNumber(
+      "Swinger kD", 
+      PIDConstants.IntakeSwingerConstants.kD
+    );
+    m_shooter.updateSwingerPID(tempKP, tempKI, tempKD);
   }
 
   public void periodic() {

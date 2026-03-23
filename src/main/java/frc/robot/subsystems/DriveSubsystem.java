@@ -69,7 +69,7 @@ public class DriveSubsystem extends SubsystemBase {
   public final VisionSubsystem m_vision = Constants.DriveConstants.enableVision ? new VisionSubsystem() : null;
 
   // The gyro sensor
-  private final ADXRS450_Gyro m_gyro = new ADXRS450_Gyro();
+  private static final ADXRS450_Gyro m_gyro = new ADXRS450_Gyro();
   
   private Pose2d relativePose = new Pose2d();
 
@@ -128,7 +128,6 @@ public class DriveSubsystem extends SubsystemBase {
   public Pose2d getRelativePose(){
     return m_odometry.getEstimatedPosition().relativeTo(relativePose);
   }
-
   public void setRelativePose(Pose2d pose){
     relativePose = pose;
   }

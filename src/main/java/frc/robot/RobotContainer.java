@@ -23,12 +23,15 @@ import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.commands.driveCommands.MoveToPosition;
 import frc.robot.commands.PathMaker;
 import frc.robot.commands.IntakeCommand;
+import frc.robot.commands.ShootCommand;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -38,6 +41,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonTrackedTarget;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+
 /*
  * This class is where the bulk of the robot should be declared.  Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
@@ -47,12 +52,15 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 public class RobotContainer {
   // The robot's subsystems
 
-  private final DriveSubsystem m_robotDrive = new DriveSubsystem();
+  private static final DriveSubsystem m_robotDrive = new DriveSubsystem();
   //private final PowerDistribution m_PDP = new PowerDistribution();
   private final PathMaker m_PathMaker = new PathMaker();
-  private final VisionSubsystem m_robotVision = new VisionSubsystem();
-  private final PhotonCamera m_frontCamera = m_robotVision.getPhotonCamera();
-  private final ShooterSubsystem m_shooter = new ShooterSubsystem();
+  private static final VisionSubsystem m_robotVision = new VisionSubsystem();
+  private static final PhotonCamera m_frontCamera = m_robotVision.getPhotonCamera();
+  private static final ShooterSubsystem m_shooter = new ShooterSubsystem();
+  private static final AnalogInput m_potADC = m_shooter.getPotADC();
+  public static final AnalogPotentiometer m_potentiometer = m_shooter.getPotentiometer();
+  public static final ADXRS450_Gyro m_gyro = m_robotDrive.getGyro();
   private boolean m_fieldRelative = true;
   public ShuffleboardTab tab;
   // vision drive values
@@ -104,9 +112,10 @@ public RobotContainer() {
    * {@link JoystickButton}.
    */
   private void configureButtonBindings() {
+    new JoystickButton(m_driverController, 5).toggleOnTrue(new IntakeCommand(m_shooter));
+    new JoystickButton(m_driverController, 6).toggleOnTrue(new ShootCommand(m_shooter));
     new JoystickButton(m_driverController, 7).onTrue(new InstantCommand(() -> m_robotDrive.resetGyro()));
     new JoystickButton(m_driverController, 8).onTrue(new InstantCommand(() -> m_fieldRelative = !m_fieldRelative));
-    new JoystickButton(m_driverController, 5).toggleOnTrue(new IntakeCommand(m_shooter));
   }
   
   public void VisionMoveToTarget() {
@@ -215,8 +224,11 @@ public RobotContainer() {
     }
     SmartDashboard.putBoolean("Field Relative?", m_fieldRelative);
     //SmartDashboard.putData("PDP Data", m_PDP);
+    SmartDashboard.putData("Gyro", m_gyro);
     SmartDashboard.putNumber("Match Time", Timer.getMatchTime());
     SmartDashboard.putData("Drive Subsystem", m_robotDrive);
+    SmartDashboard.putData("M_potADC", m_potADC);
+    SmartDashboard.putData("Potentiometer", m_potentiometer);
   }
 
   public void updateConstants(){

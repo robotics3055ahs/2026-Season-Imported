@@ -29,13 +29,13 @@ public final class Constants {
     public static final boolean enableVision = true;
 
     // ===== Drive Motor Ports =====
-    public static final int kFrontLeftDriveMotorPort = enableDrive ? 3 : 0;
+    public static final int kFrontLeftDriveMotorPort = enableDrive ? 9 : 0;
     public static final int kRearLeftDriveMotorPort = enableDrive ? 5 : 0;
     public static final int kFrontRightDriveMotorPort = enableDrive ? 7 : 0;
     public static final int kRearRightDriveMotorPort = enableDrive ? 1 : 0;
 
     // ===== Turning Motor Ports =====
-    public static final int kFrontLeftTurningMotorPort = enableDrive ? 4 : 0;
+    public static final int kFrontLeftTurningMotorPort = enableDrive ? 10 : 0;
     public static final int kRearLeftTurningMotorPort = enableDrive ? 6 : 0;
     public static final int kFrontRightTurningMotorPort = enableDrive ? 8 : 0;
     public static final int kRearRightTurningMotorPort = enableDrive ? 2 : 0;
@@ -133,7 +133,8 @@ public final class Constants {
   // ============================================================================
   public static final class VisionConstants {
     // hub constants
-    public static int hubTargetID = 9;
+    public static final boolean isRed = false;
+    public static int hubTargetID = isRed ? 9 : 25;
     public static final double hubHeightMeters = 0.64135; // 25.25 inches
     // Turn PID control
     public static final double VISION_TURN_kP = .25; // similar to kMaxModuleAngularAccelerationRadiansPerSecondSquared
@@ -178,18 +179,21 @@ public final class Constants {
     public static final int shooterMotorPort2 = 13;
     public static final int shooterMotorPort3 = 14;
     public static final int shooterMotorPort4 = 15;
+    public static final int feederMotorPort = 16;
   }
 
   public static final class PIDConstants {
     public static final class IntakeSwingerConstants { // This motor is a neo
-      public static final double kP = 0.00014;
-      public static final double kI = 0.00004;
-      public static final double kD = 0.00009;
+      public static final double kP = 0.0000001;
+      public static final double kI = 0.0000000001;
+      public static final double kD = 0.000000000001;
       public static final double potentiometerTargetDegrees = 100.0;
       public static final double potentiometerDegrees = 270.0;
       public static final double potentiometerOffset = 0.0;
       public static final double ArmDegrees = potentiometerDegrees / 2;//1:2 ratio
       //get degrees by multipling the value returned by the ADC with the Arm degrees constant
+      // public static final double swingerMaxThreshhold = 215;
+      // public static final double swingerMinThreshhold = 35;
     }
     public static final class BallRollerConstants { // This motor is a neo
       public static final double kP = 0.00014;
@@ -197,7 +201,9 @@ public final class Constants {
       public static final double kD = 0.00009;
     }
     public static final class ShooterConstants { // 4 neo motors
+      public static final double feederMotorSpeed = 1;
       public static final double shooterSpeedRPM = 3000;
+      public static final double feedingThreshholdRPM = shooterSpeedRPM - 100;
       public static final double kP = 0.00014;
       public static final double kI = 0.00004;
       public static final double kD = 0.00009;

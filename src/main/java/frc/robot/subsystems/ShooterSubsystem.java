@@ -22,7 +22,8 @@ import edu.wpi.first.wpilibj.motorcontrol.Talon;
 
 @Logged
 public class ShooterSubsystem extends SubsystemBase {
-  private final AnalogInput m_potADC = new AnalogInput(OIConstants.intakeSwingerPotentiometerPort);
+  private static final AnalogInput m_potADC = new AnalogInput(OIConstants.intakeSwingerPotentiometerPort);
+  private static final AnalogPotentiometer m_potentiometer = new AnalogPotentiometer(m_potADC, 270, 30);
   private final Talon intakeSwinger = new Talon(OIConstants.intakeSwingerPort);
   private final TalonSRX intakeRunnerKraken = new TalonSRX(OIConstants.intakeRunnerKrakenPort);
   private final SparkFlex ballRollerNeo = new SparkFlex(OIConstants.ballRollerNeoPort, MotorType.kBrushless);
@@ -30,6 +31,7 @@ public class ShooterSubsystem extends SubsystemBase {
   private final SparkMax shooterNeo2 = new SparkMax(OIConstants.shooterMotorPort2, MotorType.kBrushless);
   private final SparkMax shooterNeo3 = new SparkMax(OIConstants.shooterMotorPort3, MotorType.kBrushless);
   private final SparkMax shooterNeo4 = new SparkMax(OIConstants.shooterMotorPort4, MotorType.kBrushless);
+  private final SparkFlex feederMotor = new SparkFlex(OIConstants.feederMotorPort, MotorType.kBrushless);
   private final double sumOfSwingerPIDS = 
     PIDConstants.IntakeSwingerConstants.kP 
     + PIDConstants.IntakeSwingerConstants.kI
@@ -100,52 +102,57 @@ public class ShooterSubsystem extends SubsystemBase {
     ballRollerNeo.set(0);
   }
 
-  /*
+  /**
    * Shoot
    */
   public void shoot() {
     double targetRPM = PIDConstants.ShooterConstants.shooterSpeedRPM;
-    double currentRPM1 = shooterNeo1.getEncoder().getVelocity() + PIDConstants.ShooterConstants.kFeedForward;
-    double currentRPM2 = shooterNeo2.getEncoder().getVelocity() + PIDConstants.ShooterConstants.kFeedForward;
-    double currentRPM3 = shooterNeo3.getEncoder().getVelocity() + PIDConstants.ShooterConstants.kFeedForward;
-    double currentRPM4 = shooterNeo4.getEncoder().getVelocity() + PIDConstants.ShooterConstants.kFeedForward;
-    
-    double output1 = shooterPID.calculate(currentRPM1, targetRPM);
-    double output2 = shooterPID.calculate(currentRPM2, targetRPM);
-    double output3 = shooterPID.calculate(currentRPM3, targetRPM);
-    double output4 = shooterPID.calculate(currentRPM4, targetRPM);
-
-    shooterNeo1.set(output1);
-    shooterNeo2.set(output2);
-    shooterNeo3.set(output3);
-    shooterNeo4.set(output4);  
+    double currentRPM = shooterNeo1.getEncoder().getVelocity() + PIDConstants.ShooterConstants.kFeedForward;
+    double output = shooterPID.calculate(currentRPM, targetRPM);
+    if(currentRPM >= PIDConstants.ShooterConstants.feedingThreshholdRPM){
+      feederMotor.set(PIDConstants.ShooterConstants.feederMotorSpeed);
+    }
+    shooterNeo1.set(output);
+    shooterNeo2.set(output);
+    shooterNeo3.set(output);
+    shooterNeo4.set(output); 
   }
 
-  /*
+  /**
    * Stop shooting
    */
   public void stopShooter(){
     double targetRPM = 0;
-    double currentRPM1 = shooterNeo1.getEncoder().getVelocity() + PIDConstants.ShooterConstants.kFeedForward;
-    double currentRPM2 = shooterNeo2.getEncoder().getVelocity() + PIDConstants.ShooterConstants.kFeedForward;
-    double currentRPM3 = shooterNeo3.getEncoder().getVelocity() + PIDConstants.ShooterConstants.kFeedForward;
-    double currentRPM4 = shooterNeo4.getEncoder().getVelocity() + PIDConstants.ShooterConstants.kFeedForward;
-    
-    double output1 = shooterPID.calculate(currentRPM1, targetRPM);
-    double output2 = shooterPID.calculate(currentRPM2, targetRPM);
-    double output3 = shooterPID.calculate(currentRPM3, targetRPM);
-    double output4 = shooterPID.calculate(currentRPM4, targetRPM);
-
-    shooterNeo1.set(output1);
-    shooterNeo2.set(output2);
-    shooterNeo3.set(output3);
-    shooterNeo4.set(output4);  
+    double currentRPM = shooterNeo1.getEncoder().getVelocity() + PIDConstants.ShooterConstants.kFeedForward;
+    double output = shooterPID.calculate(currentRPM, targetRPM);
+    shooterNeo1.set(output);
+    shooterNeo2.set(output);
+    shooterNeo3.set(output);
+    shooterNeo4.set(output);  
+    feederMotor.set(0);
   }
 
+  /**
+   * 
+   * @param kP
+   * @param kI
+   * @param kD
+   * 
+   * Creates a new PID controller for the intake swinger if the
+   *  given values are different from the values already there
+   */
   public void updateSwingerPID(double kP, double kI, double kD) {
     if(!(kP*kI*kD == productOfSwingerPIDS && kP+kI+kD == sumOfSwingerPIDS)){
       intakeSwingerPID = new PIDController(kP, kI, kD);
     }
+  }
+
+  public AnalogInput getPotADC(){
+    return m_potADC;
+  }
+
+  public AnalogPotentiometer getPotentiometer(){
+    return m_potentiometer;
   }
 
   /**
@@ -160,5 +167,6 @@ public class ShooterSubsystem extends SubsystemBase {
     shooterNeo2.stopMotor();
     shooterNeo3.stopMotor();
     shooterNeo4.stopMotor();
+    feederMotor.stopMotor();
   }
 }

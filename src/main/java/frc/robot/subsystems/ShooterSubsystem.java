@@ -96,8 +96,8 @@ public class ShooterSubsystem extends SubsystemBase {
         new NeoResponse(1.0, 5750),
       };
       int index = 0;
-      for(int i = 0; i < 10; i++)
-        index += (neoLookupTable[i].neoRPM >= PIDConstants.ShooterConstants.shooterSpeedRPM) ? 1: 0;   
+      for(int i = 0; i < neoLookupTable.length; i++)
+        index += (neoLookupTable[i].neoRPM <= PIDConstants.ShooterConstants.shooterSpeedRPM) ? 1: 0;   
       
       kFeedForward = neoLookupTable[index].power;
       //shooterNeo1.setInverted(true);

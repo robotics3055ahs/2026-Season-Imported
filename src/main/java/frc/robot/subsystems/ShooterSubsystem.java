@@ -14,6 +14,9 @@ import frc.robot.Constants.OIConstants;
 import com.revrobotics.spark.*;
 import com.revrobotics.spark.config.*;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+
+import java.util.ArrayList;
+
 import com.ctre.phoenix.motorcontrol.TalonSRXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import frc.robot.Constants.PIDConstants;
@@ -22,17 +25,29 @@ import edu.wpi.first.wpilibj.motorcontrol.Talon;
 
 @Logged
 public class ShooterSubsystem extends SubsystemBase {
+  public class NeoResponse  {
+    public final double power;
+    public final double neoRPM;
+
+    public NeoResponse(double pw, double rpm){
+      power = pw;
+      neoRPM = rpm;
+    }
+  }
+  // Analog Output for the potentiometer is from 0 - 5
+  // Based on last test
   private static final AnalogInput m_potADC = new AnalogInput(OIConstants.intakeSwingerPotentiometerPort);
   private static final AnalogPotentiometer m_potentiometer = new AnalogPotentiometer(m_potADC, 270, 30);
-  private final Talon intakeSwinger = new Talon(OIConstants.intakeSwingerPort);
-  private final TalonSRX intakeRunnerKraken = new TalonSRX(OIConstants.intakeRunnerKrakenPort);
-  private final SparkFlex ballRollerNeo = new SparkFlex(OIConstants.ballRollerNeoPort, MotorType.kBrushless);
-  private final SparkMax shooterNeo1 = new SparkMax(OIConstants.shooterMotorPort1, MotorType.kBrushless);
-  private final SparkMax shooterNeo2 = new SparkMax(OIConstants.shooterMotorPort2, MotorType.kBrushless);
-  private final SparkMax shooterNeo3 = new SparkMax(OIConstants.shooterMotorPort3, MotorType.kBrushless);
-  private final SparkMax shooterNeo4 = new SparkMax(OIConstants.shooterMotorPort4, MotorType.kBrushless);
-  private final SparkFlex feederMotor = new SparkFlex(OIConstants.feederMotorPort, MotorType.kBrushless);
-  private final double sumOfSwingerPIDS = 
+  private static final Talon intakeSwinger = new Talon(OIConstants.intakeSwingerPort);
+  private static final TalonSRX intakeRunnerKraken = new TalonSRX(OIConstants.intakeRunnerKrakenPort);
+  private static final Talon ballRoller = new Talon(OIConstants.ballRollerPort);
+  private static final SparkMax shooterNeo1 = new SparkMax(OIConstants.shooterMotorPort1, MotorType.kBrushless);
+  private static final SparkFlex shooterNeo2 = new SparkFlex(OIConstants.shooterMotorPort2, MotorType.kBrushless);
+  private static final SparkMax shooterNeo3 = new SparkMax(OIConstants.shooterMotorPort3, MotorType.kBrushless);
+  private static final SparkFlex shooterNeo4 = new SparkFlex(OIConstants.shooterMotorPort4, MotorType.kBrushless);
+  private static final Talon feederMotor = new Talon(OIConstants.FeederPort); 
+  // static final SparkMax feederMotor = new SparkMax(OIConstants.feederMotorPort, MotorType.kBrushless);
+  private static final double sumOfSwingerPIDS = 
     PIDConstants.IntakeSwingerConstants.kP 
     + PIDConstants.IntakeSwingerConstants.kI
     + PIDConstants.IntakeSwingerConstants.kD;
@@ -40,7 +55,6 @@ public class ShooterSubsystem extends SubsystemBase {
     PIDConstants.IntakeSwingerConstants.kP 
     * PIDConstants.IntakeSwingerConstants.kI
     * PIDConstants.IntakeSwingerConstants.kD;
-
   // PID Controller for the intake swinger
   private static PIDController intakeSwingerPID = new PIDController(
     PIDConstants.IntakeSwingerConstants.kP,
@@ -53,13 +67,44 @@ public class ShooterSubsystem extends SubsystemBase {
     PIDConstants.ShooterConstants.kI,
     PIDConstants.ShooterConstants.kD
   );
+  private static double kFeedForward;
 
   /** Creates a new ExampleSubsystem. */
   public ShooterSubsystem() {
       // Configure the shooter motors to follow each other
-      shooterNeo3.setInverted(true);
-      shooterNeo4.setInverted(true);
-  }
+      NeoResponse[] neoLookupTable = 
+      {
+        new NeoResponse(0.05, 250),
+        new NeoResponse(0.1, 580),
+        new NeoResponse(0.15, 800),
+        new NeoResponse(0.2, 1200),
+        new NeoResponse(0.25, 1500),
+        new NeoResponse(0.3, 1800),
+        new NeoResponse(0.35, 2050),
+        new NeoResponse(0.4, 2400),
+        new NeoResponse(0.45, 2700),
+        new NeoResponse(0.5, 3000),
+        new NeoResponse(0.55, 3300),
+        new NeoResponse(0.6, 3550),
+        new NeoResponse(0.65, 3900),
+        new NeoResponse(0.7, 4150),
+        new NeoResponse(0.75, 4450),
+        new NeoResponse(0.8, 4700),
+        new NeoResponse(0.85, 5000),
+        new NeoResponse(0.9, 5250),
+        new NeoResponse(0.95, 5500),
+        new NeoResponse(1.0, 5750),
+      };
+      int index = 0;
+      for(int i = 0; i < 10; i++)
+        index += (neoLookupTable[i].neoRPM >= PIDConstants.ShooterConstants.shooterSpeedRPM) ? 1: 0;   
+      
+      kFeedForward = neoLookupTable[index].power;
+      //shooterNeo1.setInverted(true);
+      //shooterNeo2.setInverted(true);
+      //shooterNeo4.setInverted(true);
+
+    }
 
   /**
    * Swing the intake out to pick up balls
@@ -67,9 +112,9 @@ public class ShooterSubsystem extends SubsystemBase {
   public void swingOut() {
     // Swing the intake out
     double targetPosition = PIDConstants.IntakeSwingerConstants.potentiometerTargetDegrees;
-    double currentPosition = m_potADC.getValue() * PIDConstants.IntakeSwingerConstants.ArmDegrees; // Current Arm position in degrees
+    double currentPosition = (m_potADC.getValue() / PIDConstants.IntakeSwingerConstants.potMaxValue) * PIDConstants.IntakeSwingerConstants.ArmDegrees; // Current Arm position in degrees
     double output = intakeSwingerPID.calculate(currentPosition, targetPosition);
-    intakeSwinger.set(output);
+    intakeSwinger.set(0);
 
     // Run the swinger arm motors to pick up balls
     intakeRunnerKraken.set(TalonSRXControlMode.PercentOutput, 0.1);
@@ -82,7 +127,7 @@ public class ShooterSubsystem extends SubsystemBase {
     double targetPosition = 0;
     double currentPosition = m_potADC.getValue() * PIDConstants.IntakeSwingerConstants.ArmDegrees; // Current Arm position in degrees
     double output = intakeSwingerPID.calculate(currentPosition, targetPosition);
-    intakeSwinger.set(output);
+    intakeSwinger.set(0);
 
     // Stop intaking
     intakeRunnerKraken.set(TalonSRXControlMode.PercentOutput, 0);
@@ -92,14 +137,14 @@ public class ShooterSubsystem extends SubsystemBase {
    * Roll the balls into the shooter
    */
   public void rollBalls() {
-    ballRollerNeo.set(0.1);
+    ballRoller.set(0.1);
   }
 
   /**
    * Stop the ball roller
    */
   public void stopRoller() {
-    ballRollerNeo.set(0);
+    ballRoller.set(0);
   }
 
   /**
@@ -107,14 +152,15 @@ public class ShooterSubsystem extends SubsystemBase {
    */
   public void shoot() {
     double targetRPM = PIDConstants.ShooterConstants.shooterSpeedRPM;
-    double currentRPM = shooterNeo1.getEncoder().getVelocity() + PIDConstants.ShooterConstants.kFeedForward;
-    double output = shooterPID.calculate(currentRPM, targetRPM);
-    if(currentRPM >= PIDConstants.ShooterConstants.feedingThreshholdRPM){
-      feederMotor.set(PIDConstants.ShooterConstants.feederMotorSpeed);
-    }
-    shooterNeo1.set(output);
-    shooterNeo2.set(output);
-    shooterNeo3.set(output);
+    double currentRPM = shooterNeo1.getEncoder().getVelocity();
+    double output = shooterPID.calculate(currentRPM, targetRPM) + kFeedForward;
+    //if(currentRPM >= PIDConstants.ShooterConstants.feedingThreshholdRPM){
+      //feederMotor.set(PIDConstants.ShooterConstants.feederMotorSpeed);
+    //}
+
+    shooterNeo1.set(-output);
+    shooterNeo2.set(-output);
+    shooterNeo3.set(-output);
     shooterNeo4.set(output); 
   }
 
@@ -123,12 +169,12 @@ public class ShooterSubsystem extends SubsystemBase {
    */
   public void stopShooter(){
     double targetRPM = 0;
-    double currentRPM = shooterNeo1.getEncoder().getVelocity() + PIDConstants.ShooterConstants.kFeedForward;
+    double currentRPM = shooterNeo1.getEncoder().getVelocity();
     double output = shooterPID.calculate(currentRPM, targetRPM);
-    shooterNeo1.set(output);
-    shooterNeo2.set(output);
-    shooterNeo3.set(output);
-    shooterNeo4.set(output);  
+    shooterNeo1.set(0);
+    shooterNeo2.set(0);
+    shooterNeo3.set(0);
+    shooterNeo4.set(0);  
     feederMotor.set(0);
   }
 
@@ -162,7 +208,7 @@ public class ShooterSubsystem extends SubsystemBase {
   public void stopAllMotors() {
     intakeSwinger.stopMotor();
     intakeRunnerKraken.set(TalonSRXControlMode.PercentOutput, 0);
-    ballRollerNeo.stopMotor();
+    ballRoller.stopMotor();
     shooterNeo1.stopMotor();
     shooterNeo2.stopMotor();
     shooterNeo3.stopMotor();

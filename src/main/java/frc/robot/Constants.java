@@ -171,15 +171,17 @@ public final class Constants {
     public static int autoSelected = 0;
 
     // Motor Ports
-    public static final int intakeSwingerPotentiometerPort = 0; // PWM channel
-    public static final int intakeSwingerPort = 9; // PWM channel
-    public static final int intakeRunnerKrakenPort = 10;
-    public static final int ballRollerNeoPort = 11;
-    public static final int shooterMotorPort1 = 12;
-    public static final int shooterMotorPort2 = 13;
-    public static final int shooterMotorPort3 = 14;
-    public static final int shooterMotorPort4 = 15;
-    public static final int feederMotorPort = 16;
+    public static final int pdpPort = 20;
+    public static final int intakeSwingerPotentiometerPort = 3; // PWM channel
+    public static final int intakeSwingerPort = 1; // PWM channel
+    public static final int intakeRunnerKrakenPort = 10; // phoenix
+    public static final int ballRollerPort = 0; // PWM 
+    public static final int FeederPort = 2;//PWM channel
+    public static final int shooterMotorPort1 = 13; // rev
+    public static final int shooterMotorPort2 = 14; // rev
+    public static final int shooterMotorPort3 = 12; // rev
+    public static final int shooterMotorPort4 = 11; // rev
+    public static final int feederMotorPort = 15; // rev
   }
 
   public static final class PIDConstants {
@@ -190,25 +192,20 @@ public final class Constants {
       public static final double potentiometerTargetDegrees = 100.0;
       public static final double potentiometerDegrees = 270.0;
       public static final double potentiometerOffset = 0.0;
+      public static final double potMaxValue = 5.0;
       public static final double ArmDegrees = potentiometerDegrees / 2;//1:2 ratio
+      // output value is potValue / 5 * (270 / 2)
       //get degrees by multipling the value returned by the ADC with the Arm degrees constant
       // public static final double swingerMaxThreshhold = 215;
       // public static final double swingerMinThreshhold = 35;
     }
-    public static final class BallRollerConstants { // This motor is a neo
-      public static final double kP = 0.00014;
-      public static final double kI = 0.00004;
-      public static final double kD = 0.00009;
-    }
     public static final class ShooterConstants { // 4 neo motors
       public static final double feederMotorSpeed = 1;
-      public static final double shooterSpeedRPM = 3000;
+      public static final double shooterSpeedRPM = 4000;
       public static final double feedingThreshholdRPM = shooterSpeedRPM - 100;
-      public static final double kP = 0.00014;
-      public static final double kI = 0.00004;
-      public static final double kD = 0.00009;
-      public static double kFF_LinearResponce = 5654;//5654
-      public static double kFeedForward = shooterSpeedRPM / kFF_LinearResponce;
+      public static final double kP = 0;//0.00014;
+      public static final double kI = 0;//0.00004;
+      public static final double kD = 0;//0.00009;
     }
   }
 

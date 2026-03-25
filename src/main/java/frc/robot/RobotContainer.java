@@ -20,6 +20,7 @@ import frc.robot.Constants.VisionConstants;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.ShooterSubsystem.NeoResponse;
 import frc.robot.commands.driveCommands.MoveToPosition;
 import frc.robot.commands.PathMaker;
 import frc.robot.commands.IntakeCommand;
@@ -35,9 +36,13 @@ import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+import java.util.ArrayList;
+
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonTrackedTarget;
@@ -53,7 +58,7 @@ public class RobotContainer {
   // The robot's subsystems
 
   private static final DriveSubsystem m_robotDrive = new DriveSubsystem();
-  //private final PowerDistribution m_PDP = new PowerDistribution();
+  PowerDistribution m_PDP = new PowerDistribution(OIConstants.pdpPort, ModuleType.kRev);
   private final PathMaker m_PathMaker = new PathMaker();
   private static final VisionSubsystem m_robotVision = new VisionSubsystem();
   private static final PhotonCamera m_frontCamera = m_robotVision.getPhotonCamera();
@@ -223,7 +228,7 @@ public RobotContainer() {
       SmartDashboard.putBoolean("Camera Connected", false);
     }
     SmartDashboard.putBoolean("Field Relative?", m_fieldRelative);
-    //SmartDashboard.putData("PDP Data", m_PDP);
+    SmartDashboard.putData("PDP Data", m_PDP);
     SmartDashboard.putData("Gyro", m_gyro);
     SmartDashboard.putNumber("Match Time", Timer.getMatchTime());
     SmartDashboard.putData("Drive Subsystem", m_robotDrive);

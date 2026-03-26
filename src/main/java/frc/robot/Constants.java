@@ -185,7 +185,7 @@ public final class Constants {
 
   public static final class PIDConstants {
     public static final class IntakeSwingerConstants { // This motor is a neo
-      public static final double swingerSpeed = 0.0;
+      public static final double swingerSpeed = 1.0;
       public static final double kP = 0.0000001;
       public static final double kI = 0.0000000001;
       public static final double kD = 0.000000000001;
@@ -196,6 +196,7 @@ public final class Constants {
       divide 90 by two to make 90-45 the bottom limit, and 270 -45 to get the top limit
       then subtract out tolerance from the 225, and add the tolerance to the 45
       */
+      public static final double potOffset = 30.0;
       public static final double potTolerance = 5.0;
       public static final double potMaxDegreesAllowed = 270 - 45 - potTolerance;
       public static final double potMinDegreesAllowed = 0 + 45 + potTolerance;
@@ -206,7 +207,6 @@ public final class Constants {
       public static final double potentiometerDegrees = 270.0;
       public static final double potentiometerOffset = 0.0;
       public static final double potMaxValue = 5.0; // In analog value
-      public static final double ArmDegrees = potentiometerDegrees / 2;//1:2 ratio
       // output value is potValue / 5 * (270 / 2)
       //get degrees by multipling the value returned by the ADC with the Arm degrees constant
       // public static final double swingerMaxThreshhold = 215;

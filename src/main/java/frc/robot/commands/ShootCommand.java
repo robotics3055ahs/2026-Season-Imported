@@ -23,7 +23,9 @@ public class ShootCommand extends Command {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    m_subsystem.rollBalls();
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
@@ -35,6 +37,7 @@ public class ShootCommand extends Command {
   @Override
   public void end(boolean interrupted) {
     m_subsystem.stopShooter();
+    m_subsystem.stopRoller();
   }
 
   // Returns true when the command should end.

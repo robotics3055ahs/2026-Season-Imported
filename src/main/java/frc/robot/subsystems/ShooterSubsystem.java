@@ -8,6 +8,7 @@ import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.OIConstants;
@@ -22,6 +23,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import frc.robot.Constants.PIDConstants;
+import frc.robot.RobotContainer;
 import edu.wpi.first.wpilibj.motorcontrol.Talon;
 
 
@@ -38,6 +40,7 @@ public class ShooterSubsystem extends SubsystemBase {
   }
   // Analog Output for the potentiometer is from 0 - 5
   // Based on last test
+  private static XboxController m_driverController;
   private static final AnalogInput m_potADC = new AnalogInput(OIConstants.intakeSwingerPotentiometerPort);
   private static final AnalogPotentiometer m_potentiometer = new AnalogPotentiometer(m_potADC, 270, 30);
   private static final Talon intakeSwinger = new Talon(OIConstants.intakeSwingerPort);
@@ -48,7 +51,6 @@ public class ShooterSubsystem extends SubsystemBase {
   private static final SparkMax shooterNeo3 = new SparkMax(OIConstants.shooterMotorPort3, MotorType.kBrushless);
   private static final SparkFlex shooterNeo4 = new SparkFlex(OIConstants.shooterMotorPort4, MotorType.kBrushless);
   private static final Talon feederMotor = new Talon(OIConstants.FeederPort); 
-  private static boolean isSwingerOut = false;
   private static final double sumOfShooterPIDS = 
   PIDConstants.ShooterConstants.kP 
   + PIDConstants.ShooterConstants.kI
@@ -66,7 +68,8 @@ public class ShooterSubsystem extends SubsystemBase {
   private static double kFeedForward;
   
   /** Creates a new ExampleSubsystem. */
-  public ShooterSubsystem() {
+  public ShooterSubsystem(XboxController driveController) {
+    m_driverController = driveController;
     // Configure the shooter motors to follow each other
     NeoResponse[] neoLookupTable = 
     {
@@ -102,46 +105,38 @@ public class ShooterSubsystem extends SubsystemBase {
     
   }
 
-  public boolean isSwingerOut(){
-    return isSwingerOut;
-  }
-  
-  public void swingerIsNowOut(){
-    isSwingerOut = true;
+  /**
+   * positive set speed resulted in swinger comming in
+   * Button A is for swing in
+   * Button B is for swing out
+   */
+  public void swingerHandler(){
+    double currentPosition = (m_potADC.getValue() / PIDConstants.IntakeSwingerConstants.potMaxValue) * PIDConstants.IntakeSwingerConstants.potentiometerDegrees; // Current Arm position in degrees
+    if(m_driverController.getAButton()) // swing in if button A is held
+    {
+      // if(currentPosition <= PIDConstants.IntakeSwingerConstants.potMaxDegreesAllowed && currentPosition >= PIDConstants.IntakeSwingerConstants.potMinDegreesAllowed)
+        intakeSwinger.set(PIDConstants.IntakeSwingerConstants.swingerSpeed);
+    }
+    else if (m_driverController.getBButton()) // swing out if button B is held
+    {
+      // if(currentPosition <= PIDConstants.IntakeSwingerConstants.potMaxDegreesAllowed && currentPosition >= PIDConstants.IntakeSwingerConstants.potMinDegreesAllowed)
+        intakeSwinger.set(-PIDConstants.IntakeSwingerConstants.swingerSpeed);
+    }
+    else
+    {
+      intakeSwinger.stopMotor();
+    }
   }
 
-  public void swingerIsNowIn(){
-    isSwingerOut = false;
+  public double getCalculatedCurrentPosition(){
+    return (m_potADC.getValue() / PIDConstants.IntakeSwingerConstants.potMaxValue) * PIDConstants.IntakeSwingerConstants.potentiometerDegrees; // Current Arm position in degrees
   }
 
-  /**
-  * Swing the intake out to pick up balls
-  */
-  public void swingOut() {
-    // Swing the intake out
-    double targetPosition = PIDConstants.IntakeSwingerConstants.potentiometerTargetHigh;
-    double currentPosition = (m_potADC.getValue() / PIDConstants.IntakeSwingerConstants.potMaxValue) * PIDConstants.IntakeSwingerConstants.ArmDegrees; // Current Arm position in degrees
-    // double output = intakeSwingerPID.calculate(currentPosition, targetPosition);
-    if(currentPosition <= targetPosition)
-      intakeSwinger.set(PIDConstants.IntakeSwingerConstants.swingerSpeed);
-    else
-      intakeSwinger.set(0);
-    // Run the swinger arm motors to pick up balls
-    intakeRunnerKraken.set(0.5);
+  public void enableIntakeKraken(){
+    intakeRunnerKraken.set(-0.5);
   }
-  
-  /**
-  * Swing the intake back in 
-  */
-  public void swingIn() {
-    double targetPosition = PIDConstants.IntakeSwingerConstants.potentiometerTargetLow;
-    double currentPosition = m_potADC.getValue() * PIDConstants.IntakeSwingerConstants.ArmDegrees; // Current Arm position in degrees
-    // double output = intakeSwingerPID.calculate(currentPosition, targetPosition);
-    if(currentPosition >= targetPosition)
-      intakeSwinger.set(-PIDConstants.IntakeSwingerConstants.swingerSpeed);
-    else
-      intakeSwinger.set(0);
-    // Stop intaking
+
+  public void disableIntakeKraken(){
     intakeRunnerKraken.set(0);
   }
   

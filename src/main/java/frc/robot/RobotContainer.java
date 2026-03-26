@@ -24,8 +24,7 @@ import frc.robot.subsystems.ShooterSubsystem.NeoResponse;
 import frc.robot.commands.driveCommands.MoveToPosition;
 import frc.robot.commands.PathMaker;
 import frc.robot.commands.ShootCommand;
-import frc.robot.commands.SwingInCommand;
-import frc.robot.commands.SwingOutCommand;
+import frc.robot.commands.IntakeKrakenCommand;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
@@ -58,12 +57,14 @@ import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 public class RobotContainer {
   // The robot's subsystems
 
+  // The driver's controller
+  private static final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
   private static final DriveSubsystem m_robotDrive = new DriveSubsystem();
   PowerDistribution m_PDP = new PowerDistribution(OIConstants.pdpPort, ModuleType.kRev);
   private final PathMaker m_PathMaker = new PathMaker();
   private static final VisionSubsystem m_robotVision = new VisionSubsystem();
   private static final PhotonCamera m_frontCamera = m_robotVision.getPhotonCamera();
-  private static final ShooterSubsystem m_shooter = new ShooterSubsystem();
+  private static final ShooterSubsystem m_shooter = new ShooterSubsystem(m_driverController);
   private static final AnalogInput m_potADC = m_shooter.getPotADC();
   public static final AnalogPotentiometer m_potentiometer = m_shooter.getPotentiometer();
   public static final ADXRS450_Gyro m_gyro = m_robotDrive.getGyro();
@@ -89,8 +90,6 @@ public class RobotContainer {
     VisionConstants.VISION_STRAFE_kI, 
     VisionConstants.VISION_STRAFE_kD
   );
-  // The driver's controller
-  private final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
   // private final Joystick m_driverRJoystick = new Joystick(OIConstants.kRightJoystickPort);
 
 /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -119,15 +118,7 @@ public RobotContainer() {
    */
   private void configureButtonBindings() {
     // Toggle swinger: if currently out, schedule SwingInCommand; otherwise schedule SwingOutCommand.
-    new JoystickButton(m_driverController, 5).onTrue(
-      new InstantCommand(() -> {
-        if (m_shooter.isSwingerOut()) {
-          new SwingInCommand(m_shooter).schedule();
-        } else {
-          new SwingOutCommand(m_shooter).schedule();
-        }
-      })
-    );
+    new JoystickButton(m_driverController, 5).toggleOnTrue(new IntakeKrakenCommand(m_shooter));
     new JoystickButton(m_driverController, 6).toggleOnTrue(new ShootCommand(m_shooter));
     new JoystickButton(m_driverController, 7).onTrue(new InstantCommand(() -> m_robotDrive.resetGyro()));
     new JoystickButton(m_driverController, 8).onTrue(new InstantCommand(() -> m_fieldRelative = !m_fieldRelative));
@@ -166,7 +157,7 @@ public RobotContainer() {
     }
     
     // While button A is being pressed, auto align ANGLE to april tag
-    if (targetVisible && m_driverController.getAButton()) {
+    if (targetVisible && m_driverController.getXButton()) {
       if (m_fieldRelative) {
         m_fieldRelative = false;
         wasFieldRelative = true;
@@ -177,7 +168,7 @@ public RobotContainer() {
       m_visionTurn = Math.abs(turnOutput) > VisionConstants.VISION_TURN_OUTPUT_DEADBAND ? turnOutput : 0;
     }
     // While button B is being pressed, auto align STRAFE & FORWARD to april tag
-    if (targetVisible && m_driverController.getBButton()) {
+    if (targetVisible && m_driverController.getYButton()) {
       if (m_fieldRelative) {
         m_fieldRelative = false;
         wasFieldRelative = true;
@@ -198,6 +189,10 @@ public RobotContainer() {
     SmartDashboard.putNumber("strafe", m_visionStrafe);
     SmartDashboard.putNumber("turn", m_visionTurn);
     SmartDashboard.putBoolean("wasFieldRelative ?", wasFieldRelative);
+  }
+
+  public XboxController getDriverController(){
+    return m_driverController;
   }
 
   public void initDashboard(){
@@ -244,9 +239,18 @@ public RobotContainer() {
     SmartDashboard.putNumber("Match Time", Timer.getMatchTime());
     SmartDashboard.putData("Drive Subsystem", m_robotDrive);
     SmartDashboard.putData("M_potADC", m_potADC);
-    SmartDashboard.putData("Potentiometer", m_potentiometer);
+    SmartDashboard.putNumber(
+      "Potentiometer Accounted for Offset", 
+      m_potentiometer.get() - PIDConstants.IntakeSwingerConstants.potOffset
+    );
+    SmartDashboard.putData(
+      "Potentiometer Without Offset", 
+      m_potentiometer
+    );
     SmartDashboard.putNumber("Shooter RPM", m_shooter.getShooterRPM());
-    SmartDashboard.putBoolean("Is Swinger Out?", m_shooter.isSwingerOut());
+    SmartDashboard.putNumber("Calculated Current Position", m_shooter.getCalculatedCurrentPosition());
+    SmartDashboard.putBoolean("Button A pressed?", m_driverController.getAButton());
+    SmartDashboard.putBoolean("Button B pressed?", m_driverController.getBButton());
   }
 
   public void updateConstants(){
@@ -279,6 +283,7 @@ public RobotContainer() {
 
   public void periodic() {
     Drive();
+    m_shooter.swingerHandler();
     updateDashboard();
     updateConstants();
     if(m_robotVision.cameraConnected){

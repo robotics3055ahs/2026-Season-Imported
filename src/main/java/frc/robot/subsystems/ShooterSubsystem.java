@@ -49,16 +49,6 @@ public class ShooterSubsystem extends SubsystemBase {
   private static final SparkFlex shooterNeo4 = new SparkFlex(OIConstants.shooterMotorPort4, MotorType.kBrushless);
   private static final Talon feederMotor = new Talon(OIConstants.FeederPort); 
   private static boolean isSwingerOut = false;
-  // static final SparkMax feederMotor = new SparkMax(OIConstants.feederMotorPort, MotorType.kBrushless);
-  private static final double sumOfSwingerPIDS = 
-  PIDConstants.IntakeSwingerConstants.kP 
-  + PIDConstants.IntakeSwingerConstants.kI
-  + PIDConstants.IntakeSwingerConstants.kD;
-  private final double productOfSwingerPIDS = 
-  PIDConstants.IntakeSwingerConstants.kP 
-  * PIDConstants.IntakeSwingerConstants.kI
-  * PIDConstants.IntakeSwingerConstants.kD;
-
   private static final double sumOfShooterPIDS = 
   PIDConstants.ShooterConstants.kP 
   + PIDConstants.ShooterConstants.kI
@@ -67,13 +57,6 @@ public class ShooterSubsystem extends SubsystemBase {
   PIDConstants.ShooterConstants.kP 
   * PIDConstants.ShooterConstants.kI
   * PIDConstants.ShooterConstants.kD;
-
-  // PID Controller for the intake swinger
-  private static PIDController intakeSwingerPID = new PIDController(
-  PIDConstants.IntakeSwingerConstants.kP,
-  PIDConstants.IntakeSwingerConstants.kI,
-  PIDConstants.IntakeSwingerConstants.kD
-  );
   // PID Controller for the shooters
   private static PIDController shooterPID = new PIDController(
   PIDConstants.ShooterConstants.kP,
@@ -139,9 +122,10 @@ public class ShooterSubsystem extends SubsystemBase {
     double targetPosition = PIDConstants.IntakeSwingerConstants.potentiometerTargetHigh;
     double currentPosition = (m_potADC.getValue() / PIDConstants.IntakeSwingerConstants.potMaxValue) * PIDConstants.IntakeSwingerConstants.ArmDegrees; // Current Arm position in degrees
     // double output = intakeSwingerPID.calculate(currentPosition, targetPosition);
-    if(currentPosition < targetPosition) {
-      intakeSwinger.set(1);
-    }
+    if(currentPosition < targetPosition)
+      intakeSwinger.set(PIDConstants.IntakeSwingerConstants.swingerSpeed);
+    else
+      intakeSwinger.set(0);
     // Run the swinger arm motors to pick up balls
     intakeRunnerKraken.set(0.5);
   }
@@ -153,9 +137,10 @@ public class ShooterSubsystem extends SubsystemBase {
     double targetPosition = PIDConstants.IntakeSwingerConstants.potentiometerTargetLow;
     double currentPosition = m_potADC.getValue() * PIDConstants.IntakeSwingerConstants.ArmDegrees; // Current Arm position in degrees
     // double output = intakeSwingerPID.calculate(currentPosition, targetPosition);
-    if(currentPosition > targetPosition){
-      intakeSwinger.set(-1);
-    }    
+    if(currentPosition > targetPosition)
+      intakeSwinger.set(-PIDConstants.IntakeSwingerConstants.swingerSpeed);
+    else
+      intakeSwinger.set(0);
     // Stop intaking
     intakeRunnerKraken.set(0);
   }
@@ -209,21 +194,6 @@ public class ShooterSubsystem extends SubsystemBase {
 
   public double getShooterRPM(){
     return shooterNeo1.getEncoder().getVelocity();
-  }
-  
-  /**
-  * 
-  * @param kP
-  * @param kI
-  * @param kD
-  * 
-  * Creates a new PID controller for the intake swinger if the
-  *  given values are different from the values already there
-  */
-  public void updateSwingerPID(double kP, double kI, double kD) {
-    if(kP*kI*kD != productOfSwingerPIDS || kP+kI+kD != sumOfSwingerPIDS){
-      intakeSwingerPID = new PIDController(kP, kI, kD);
-    }
   }
 
   /**

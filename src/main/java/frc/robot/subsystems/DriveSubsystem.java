@@ -237,6 +237,5 @@ public class DriveSubsystem extends SubsystemBase {
     m_frontRight.changeMaxSpeed(speed);
     m_rearLeft.changeMaxSpeed(speed);
     m_rearRight.changeMaxSpeed(speed);
-
   }
 }

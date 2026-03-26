@@ -164,9 +164,9 @@ public final class Constants {
     // ===== Controller Ports =====
     public static final int kDriverControllerPort = 0;
     // ===== Controller Constants =====
-    public static int driveForwardAxis = 1;
-    public static int driveStrafeAxis = 0;
-    public static int driveTurnAxis = 4;
+    public static final int driveForwardAxis = 1;
+    public static final int driveStrafeAxis = 0;
+    public static final int driveTurnAxis = 4;
     // Auto Selected
     public static int autoSelected = 0;
 
@@ -174,14 +174,13 @@ public final class Constants {
     public static final int pdpPort = 20;
     public static final int intakeSwingerPotentiometerPort = 3; // PWM channel
     public static final int intakeSwingerPort = 1; // PWM channel
-    public static final int intakeRunnerKrakenPort = 10; // phoenix
+    public static final int intakeRunnerKrakenPort = 16; // phoenix
     public static final int ballRollerPort = 0; // PWM 
     public static final int FeederPort = 2;//PWM channel
     public static final int shooterMotorPort1 = 13; // rev
     public static final int shooterMotorPort2 = 14; // rev
     public static final int shooterMotorPort3 = 12; // rev
     public static final int shooterMotorPort4 = 11; // rev
-    public static final int feederMotorPort = 15; // rev
   }
 
   public static final class PIDConstants {
@@ -189,7 +188,8 @@ public final class Constants {
       public static final double kP = 0.0000001;
       public static final double kI = 0.0000000001;
       public static final double kD = 0.000000000001;
-      public static final double potentiometerTargetDegrees = 100.0;
+      public static final double potentiometerTargetHigh = 200.0;
+      public static final double potentiometerTargetLow = 15.0;
       public static final double potentiometerDegrees = 270.0;
       public static final double potentiometerOffset = 0.0;
       public static final double potMaxValue = 5.0;
@@ -201,11 +201,12 @@ public final class Constants {
     }
     public static final class ShooterConstants { // 4 neo motors
       public static final double feederMotorSpeed = 1;
-      public static final double shooterSpeedRPM = 4000;
-      public static final double feedingThreshholdRPM = shooterSpeedRPM - 100;
-      public static final double kP = 0;//0.00014;
-      public static final double kI = 0;//0.00004;
-      public static final double kD = 0;//0.00009;
+      public static final double shooterSpeedRPM = 3500;
+      public static final double feedingThreshholdRPM = shooterSpeedRPM - 150;
+      public static final double IresetThreshold = 400;
+      public static final double kP = 0;//0.00000001;
+      public static final double kI = 0.00001;//0.00004;
+      public static final double kD = 0;//0.00000009;
     }
   }
 

@@ -23,8 +23,9 @@ import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.ShooterSubsystem.NeoResponse;
 import frc.robot.commands.driveCommands.MoveToPosition;
 import frc.robot.commands.PathMaker;
-import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.ShootCommand;
+import frc.robot.commands.SwingInCommand;
+import frc.robot.commands.SwingOutCommand;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
@@ -117,17 +118,29 @@ public RobotContainer() {
    * {@link JoystickButton}.
    */
   private void configureButtonBindings() {
-    new JoystickButton(m_driverController, 5).toggleOnTrue(new IntakeCommand(m_shooter));
+    // Toggle swinger: if currently out, schedule SwingInCommand; otherwise schedule SwingOutCommand.
+    new JoystickButton(m_driverController, 5).onTrue(
+      new InstantCommand(() -> {
+        if (m_shooter.isSwingerOut()) {
+          new SwingInCommand(m_shooter).schedule();
+        } else {
+          new SwingOutCommand(m_shooter).schedule();
+        }
+      })
+    );
     new JoystickButton(m_driverController, 6).toggleOnTrue(new ShootCommand(m_shooter));
     new JoystickButton(m_driverController, 7).onTrue(new InstantCommand(() -> m_robotDrive.resetGyro()));
     new JoystickButton(m_driverController, 8).onTrue(new InstantCommand(() -> m_fieldRelative = !m_fieldRelative));
   }
-  
-  public void VisionMoveToTarget() {
+
+  public void Drive(){
     // Calculate drivetrain commands from Joystick values
     m_visionForward = Math.abs(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) > 0.05 ? -(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
     m_visionStrafe = Math.abs(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) > 0.05 ? -(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
-    m_visionTurn = Math.abs(m_driverController.getRawAxis(OIConstants.driveTurnAxis)) > 0.3 ? -m_driverController.getRawAxis(OIConstants.driveTurnAxis) * ModuleConstants.kMaxModuleAngularSpeedRadiansPerSecond: 0;
+    m_visionTurn = Math.abs(m_driverController.getRawAxis(OIConstants.driveTurnAxis)) > 0.05 ? -(m_driverController.getRawAxis(OIConstants.driveTurnAxis)) * DriveConstants.kMaxSpeedMetersPerSecond: 0;
+  }
+  
+  public void VisionMoveToTarget() {
     // temp field centric boolean
     boolean wasFieldRelative = false;
     // Read in relevant data from the Camera
@@ -192,22 +205,20 @@ public RobotContainer() {
     SmartDashboard.putNumber("Chosen Hub Target", VisionConstants.hubTargetID);
     // Changable constants that will be updated from updateConstants()
     SmartDashboard.putNumber("Speed", DriveConstants.kMaxSpeedMetersPerSecond);
-    SmartDashboard.putNumber("Forward Axis", (int) OIConstants.driveForwardAxis);
-    SmartDashboard.putNumber("Strafe Axis", (int) OIConstants.driveStrafeAxis);
-    SmartDashboard.putNumber("Turn Axis", (int) OIConstants.driveTurnAxis);
-    // PID for swinger
+    // PID for shooter
     SmartDashboard.putNumber(
-      "Swinger kP", 
-      PIDConstants.IntakeSwingerConstants.kP
+      "Shooter kP", 
+      PIDConstants.ShooterConstants.kP
     );
     SmartDashboard.putNumber(
-      "Swinger kI", 
-      PIDConstants.IntakeSwingerConstants.kI
+      "Shooter kI", 
+      PIDConstants.ShooterConstants.kI
     );
     SmartDashboard.putNumber(
-      "Swinger kD", 
-      PIDConstants.IntakeSwingerConstants.kD
+      "Shooter kD", 
+      PIDConstants.ShooterConstants.kD
     );
+    SmartDashboard.putNumber("Want Shooter PID to change?",0);
   }
 
   public void updateDashboard(){
@@ -234,45 +245,45 @@ public RobotContainer() {
     SmartDashboard.putData("Drive Subsystem", m_robotDrive);
     SmartDashboard.putData("M_potADC", m_potADC);
     SmartDashboard.putData("Potentiometer", m_potentiometer);
+    SmartDashboard.putNumber("Shooter RPM", m_shooter.getShooterRPM());
+    SmartDashboard.putBoolean("Is Swinger Out?", m_shooter.isSwingerOut());
   }
 
   public void updateConstants(){
     // Speed updater
     double tempSpeed = SmartDashboard.getNumber("Speed", 5);
     DriveConstants.kMaxSpeedMetersPerSecond = tempSpeed;
-    // Controller axis updater
-    // int tempForwardAxis = (int) SmartDashboard.getNumber("Forward Axis", 1);
-    // int tempStrafeAxis = (int) SmartDashboard.getNumber("Strafe Axis", 0);
-    // int tempTurnAxis = (int) SmartDashboard.getNumber("Turn Axis", 4);
-    // OIConstants.driveForwardAxis = tempForwardAxis;
-    // OIConstants.driveStrafeAxis = tempStrafeAxis;
-    // OIConstants.driveTurnAxis = tempTurnAxis;
     // Auto updater
     int tempAuto = (int) SmartDashboard.getNumber("Auto Selector", -1);
     OIConstants.autoSelected = tempAuto;
     // Hub updater
     int tempHub = (int) SmartDashboard.getNumber("Chosen Hub Target", 1);
     VisionConstants.hubTargetID = tempHub;
-    // Swinger PID
-    double tempKP = SmartDashboard.getNumber(
-      "Swinger kP", 
-      PIDConstants.IntakeSwingerConstants.kP
-    );
-    double tempKI = SmartDashboard.getNumber(
-      "Swinger kI", 
-      PIDConstants.IntakeSwingerConstants.kI
-    );
-    double tempKD = SmartDashboard.getNumber(
-      "Swinger kD", 
-      PIDConstants.IntakeSwingerConstants.kD
-    );
-    m_shooter.updateSwingerPID(tempKP, tempKI, tempKD);
+    if(SmartDashboard.getNumber("Want Shooter PID to change?", 0) == 1){
+      double tempKP = SmartDashboard.getNumber(
+        "Shooter kP", 
+        PIDConstants.ShooterConstants.kP
+      );
+      double tempKI = SmartDashboard.getNumber(
+        "Shooter kI", 
+        PIDConstants.ShooterConstants.kI
+      );
+      double tempKD = SmartDashboard.getNumber(
+        "Shooter kD", 
+        PIDConstants.ShooterConstants.kD
+      );
+      m_shooter.updateShooterPID(tempKP, tempKI, tempKD);
+      SmartDashboard.putNumber("Want Shooter PID to change?",0);
+    }
   }
 
   public void periodic() {
+    Drive();
     updateDashboard();
     updateConstants();
-    VisionMoveToTarget();
+    if(m_robotVision.cameraConnected){
+      VisionMoveToTarget();
+    }
     m_robotVision.updateCamera();
     //m_robotDrive.changeMaxSpeed(m_driverRJoystick.getRawAxis(0));    
   }

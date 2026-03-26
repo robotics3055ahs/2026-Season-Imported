@@ -189,11 +189,23 @@ public final class Constants {
       public static final double kP = 0.0000001;
       public static final double kI = 0.0000000001;
       public static final double kD = 0.000000000001;
+      /*
+      * pot range of motion = 270
+      robot rang of motion = 180
+      270 - 180 = 90 which is the amount of range not being used
+      divide 90 by two to make 90-45 the bottom limit, and 270 -45 to get the top limit
+      then subtract out tolerance from the 225, and add the tolerance to the 45
+      */
+      public static final double potTolerance = 5.0;
+      public static final double potMaxDegreesAllowed = 270 - 45 - potTolerance;
+      public static final double potMinDegreesAllowed = 0 + 45 + potTolerance;
+      // public static final double potMaxDegrees = potMaxDegreesAllowed - potTolerance;
+      // public static final double potMinDegrees = potMinDegreesAllowed + potTolerance;
       public static final double potentiometerTargetHigh = 200.0;
-      public static final double potentiometerTargetLow = 15.0;
+      public static final double potentiometerTargetLow = 60;
       public static final double potentiometerDegrees = 270.0;
       public static final double potentiometerOffset = 0.0;
-      public static final double potMaxValue = 5.0;
+      public static final double potMaxValue = 5.0; // In analog value
       public static final double ArmDegrees = potentiometerDegrees / 2;//1:2 ratio
       // output value is potValue / 5 * (270 / 2)
       //get degrees by multipling the value returned by the ADC with the Arm degrees constant

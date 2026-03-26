@@ -122,7 +122,7 @@ public class ShooterSubsystem extends SubsystemBase {
     double targetPosition = PIDConstants.IntakeSwingerConstants.potentiometerTargetHigh;
     double currentPosition = (m_potADC.getValue() / PIDConstants.IntakeSwingerConstants.potMaxValue) * PIDConstants.IntakeSwingerConstants.ArmDegrees; // Current Arm position in degrees
     // double output = intakeSwingerPID.calculate(currentPosition, targetPosition);
-    if(currentPosition < targetPosition)
+    if(currentPosition <= targetPosition)
       intakeSwinger.set(PIDConstants.IntakeSwingerConstants.swingerSpeed);
     else
       intakeSwinger.set(0);
@@ -137,7 +137,7 @@ public class ShooterSubsystem extends SubsystemBase {
     double targetPosition = PIDConstants.IntakeSwingerConstants.potentiometerTargetLow;
     double currentPosition = m_potADC.getValue() * PIDConstants.IntakeSwingerConstants.ArmDegrees; // Current Arm position in degrees
     // double output = intakeSwingerPID.calculate(currentPosition, targetPosition);
-    if(currentPosition > targetPosition)
+    if(currentPosition >= targetPosition)
       intakeSwinger.set(-PIDConstants.IntakeSwingerConstants.swingerSpeed);
     else
       intakeSwinger.set(0);

@@ -127,6 +127,8 @@ public class Robot extends TimedRobot {
 
   // autonomous code
 
+  // auto factory is for defining autonomous in code
+  /*
   //private final Drive driveSubsystem = new Drive(); // needs to init the driving systems
   private final AutoFactory autoFactory;
 
@@ -140,3 +142,4 @@ public class Robot extends TimedRobot {
       );
   }
 }
+*/

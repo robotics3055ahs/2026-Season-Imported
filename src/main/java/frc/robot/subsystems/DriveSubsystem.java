@@ -31,7 +31,6 @@ public class DriveSubsystem extends SubsystemBase {
   NetworkTableInstance inst = NetworkTableInstance.getDefault();
   NetworkTable table = inst.getTable("datatable");
   SwerveModuleState[] swerveModuleStates;
-  XboxController m_driverController;
   
   StructArrayPublisher<SwerveModuleState> modulePublisher = NetworkTableInstance.getDefault()
     .getStructArrayTopic("MyStates", SwerveModuleState.struct).publish();
@@ -99,9 +98,8 @@ public class DriveSubsystem extends SubsystemBase {
       new Pose2d());
 
   /** Creates a new DriveSubsystem. */
-  public DriveSubsystem(XboxController controller) {
+  public DriveSubsystem() {
     m_gyro.calibrate();
-    m_driverController = controller;
   }
 
   

@@ -79,14 +79,14 @@ public final class Constants {
 
     // ===== Drive Characterization Constants =====
     public static final double ksVolts = 1.0;
-    public static final double kvVoltSecondsPerMeter = 0.12;
+    public static final double kvVoltSecondsPerMeter = 0.01;//.12
     public static final double kaVoltSecondsSquaredPerMeter = 0.15;
     public static final double kVoltsPerRotation = 60 / 523.0;
     public static final double kVoltPerMeterPerSecond = 0.413;
 
     // ===== Speed Limits =====
-    public static double kMaxSpeedMetersPerSecond = 12;//5
-    public static final double kDriveMaxAcceleration = 9;
+    public static double kMaxSpeedMetersPerSecond = 14;//5
+    public static final double kDriveMaxAcceleration = 9999999;
   }
 
   // ============================================================================
@@ -94,8 +94,8 @@ public final class Constants {
   // ============================================================================
   public static final class ModuleConstants {
     // ===== Module Speed & Acceleration Constraints =====
-    public static final double kMaxModuleAngularSpeedRadiansPerSecond = 2 * Math.PI;//8
-    public static final double kMaxModuleAngularAccelerationRadiansPerSecondSquared = 0.5 * Math.PI;//4
+    public static final double kMaxModuleAngularSpeedRadiansPerSecond = 90 * Math.PI;//8
+    public static final double kMaxModuleAngularAccelerationRadiansPerSecondSquared = 25 * Math.PI;//4
 
     // ===== Encoder Configuration =====
     public static final int kEncoderCPR = 4096;
@@ -111,9 +111,9 @@ public final class Constants {
         (2 * Math.PI) / (double) kEncoderCPR;
 
     // ===== Drive Motor PID Controller =====
-    public static final double kPModuleDriveController = 0.7;
+    public static final double kPModuleDriveController = .7;//.7
     public static final double kIModuleDriveController = 0.0;
-    public static final double kDModuleDriveController = 0.001;
+    public static final double kDModuleDriveController = 0.0012;//.001
 
     // ===== Drive Motor Feedforward (Static & Velocity) =====
     public static final double ksModuleDriveController = 0.0;

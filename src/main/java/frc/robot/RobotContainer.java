@@ -59,7 +59,7 @@ public class RobotContainer {
 
   // The driver's controller
   private static final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
-  private static final DriveSubsystem m_robotDrive = new DriveSubsystem(m_driverController);
+  private static final DriveSubsystem m_robotDrive = new DriveSubsystem();
   PowerDistribution m_PDP = new PowerDistribution(OIConstants.pdpPort, ModuleType.kRev);
   private final PathMaker m_PathMaker = new PathMaker();
   private static final VisionSubsystem m_robotVision = new VisionSubsystem();
@@ -127,9 +127,9 @@ public RobotContainer() {
   public void Drive(){
     // Calculate drivetrain commands from Joystick values
     m_visionForward = Math.abs(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) > 0.05 ? 
-      -(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
+      -(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) * 8 : 0;
     m_visionStrafe = Math.abs(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) > 0.05 ? 
-      -(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
+      -(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) * 8 : 0;
     m_visionTurn = Math.abs(m_driverController.getRawAxis(OIConstants.driveTurnAxis)) > 0.05 ? 
       -(m_driverController.getRawAxis(OIConstants.driveTurnAxis)) * DriveConstants.kMaxSpeedMetersPerSecond: 0;
   }

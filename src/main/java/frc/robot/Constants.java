@@ -185,10 +185,10 @@ public final class Constants {
 
   public static final class PIDConstants {
     public static final class IntakeSwingerConstants { // This motor is a neo
-      public static final double swingerSpeed = 1.0;
-      public static final double kP = 0.0000001;
-      public static final double kI = 0.0000000001;
-      public static final double kD = 0.000000000001;
+      public static final double swingerSpeed = 0.3;
+      public static final double kP = 0.000000;
+      public static final double kI = 0.000000000;
+      public static final double kD = 0.00000000000;
       /*
       * pot range of motion = 270
       robot rang of motion = 180
@@ -215,10 +215,10 @@ public final class Constants {
     public static final class ShooterConstants { // 4 neo motors
       public static final double feederMotorSpeed = 1;
       public static final double shooterSpeedRPM = 3500;
-      public static final double feedingThreshholdRPM = shooterSpeedRPM - 150;
+      public static final double feedingThreshholdRPM = 1000;
       public static final double IresetThreshold = 400;
       public static final double kP = 0;//0.00000001;
-      public static final double kI = 0.00001;//0.00004;
+      public static final double kI = 0.0000;//0.00004;
       public static final double kD = 0;//0.00000009;
     }
   }

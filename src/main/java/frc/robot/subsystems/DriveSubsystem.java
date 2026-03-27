@@ -4,6 +4,9 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
+
 import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -68,6 +71,14 @@ public class DriveSubsystem extends SubsystemBase {
 
   public final VisionSubsystem m_vision = Constants.DriveConstants.enableVision ? new VisionSubsystem() : null;
 
+  /*CANcoderConfiguration config = new CANcoderConfiguration();
+  double magnetOffset = 0.1;
+  MagnetSensorConfigs sensorConfig = new MagnetSensorConfigs();
+  sensorConfig.MagnetOffset = magnetOffset;
+  config.MagnetSensor = sensorConfigs;
+  cancoder.getConfigurator().apply(config);
+  */
+  
   // The gyro sensor
   private static final ADXRS450_Gyro m_gyro = new ADXRS450_Gyro();
   

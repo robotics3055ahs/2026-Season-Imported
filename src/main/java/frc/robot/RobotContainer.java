@@ -247,10 +247,13 @@ public RobotContainer() {
       "Potentiometer Without Offset", 
       m_potentiometer
     );
+
+    SmartDashboard.putNumber("Forward", m_visionForward);
+    SmartDashboard.putNumber("Strafe", m_visionStrafe);
+    SmartDashboard.putNumber("Turn", m_visionTurn);
+    
     SmartDashboard.putNumber("Shooter RPM", m_shooter.getShooterRPM());
     SmartDashboard.putNumber("Calculated Current Position", m_shooter.getCalculatedCurrentPosition());
-    SmartDashboard.putBoolean("Button A pressed?", m_driverController.getAButton());
-    SmartDashboard.putBoolean("Button B pressed?", m_driverController.getBButton());
   }
 
   public void updateConstants(){
@@ -284,6 +287,7 @@ public RobotContainer() {
   public void periodic() {
     Drive();
     m_shooter.swingerHandler();
+    m_shooter.surplussShooter();
     updateDashboard();
     updateConstants();
     if(m_robotVision.cameraConnected){

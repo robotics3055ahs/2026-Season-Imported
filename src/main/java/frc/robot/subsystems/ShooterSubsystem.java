@@ -114,12 +114,12 @@ public class ShooterSubsystem extends SubsystemBase {
     double currentPosition = (m_potADC.getValue() / PIDConstants.IntakeSwingerConstants.potMaxValue) * PIDConstants.IntakeSwingerConstants.potentiometerDegrees; // Current Arm position in degrees
     if(m_driverController.getAButton()) // swing in if button A is held
     {
-      // if(currentPosition <= PIDConstants.IntakeSwingerConstants.potMaxDegreesAllowed && currentPosition >= PIDConstants.IntakeSwingerConstants.potMinDegreesAllowed)
+       if(currentPosition >= PIDConstants.IntakeSwingerConstants.potMaxDegreesAllowed)
         intakeSwinger.set(PIDConstants.IntakeSwingerConstants.swingerSpeed);
     }
     else if (m_driverController.getBButton()) // swing out if button B is held
     {
-      // if(currentPosition <= PIDConstants.IntakeSwingerConstants.potMaxDegreesAllowed && currentPosition >= PIDConstants.IntakeSwingerConstants.potMinDegreesAllowed)
+      if(currentPosition >= PIDConstants.IntakeSwingerConstants.potMinDegreesAllowed)
         intakeSwinger.set(-PIDConstants.IntakeSwingerConstants.swingerSpeed);
     }
     else
@@ -128,12 +128,16 @@ public class ShooterSubsystem extends SubsystemBase {
     }
   }
 
+  public void surplussShooter(){
+    
+  }
+
   public double getCalculatedCurrentPosition(){
     return (m_potADC.getValue() / PIDConstants.IntakeSwingerConstants.potMaxValue) * PIDConstants.IntakeSwingerConstants.potentiometerDegrees; // Current Arm position in degrees
   }
 
   public void enableIntakeKraken(){
-    intakeRunnerKraken.set(-0.5);
+    intakeRunnerKraken.set(-1);
   }
 
   public void disableIntakeKraken(){
@@ -144,7 +148,7 @@ public class ShooterSubsystem extends SubsystemBase {
   * Roll the balls into the shooter
   */
   public void rollBalls() {
-    ballRoller.set(0.1);
+    ballRoller.set(-0.5);
   }
   
   /**
@@ -160,15 +164,25 @@ public class ShooterSubsystem extends SubsystemBase {
   public void shoot() {
     double targetRPM = PIDConstants.ShooterConstants.shooterSpeedRPM;
     double currentRPM = Math.abs(shooterNeo1.getEncoder().getVelocity());
-    double output = shooterPID.calculate(currentRPM, targetRPM);// + kFeedForward;
+    double feedingThreshhold = PIDConstants.ShooterConstants.feedingThreshholdRPM;
+    double output = kFeedForward;
     
     //if(currentRPM < targetRPM - PIDConstants.ShooterConstants.IresetThreshold)
     // shooterPID.reset();
-    
-    if(Math.abs(currentRPM) >= PIDConstants.ShooterConstants.feedingThreshholdRPM){
+    if(m_driverController.getRightTriggerAxis() > 0.5)
+    {
+      output = kFeedForward + 0.25;
+      if(output > 1) output = 1;
+    }
+
+    if(currentRPM < targetRPM - feedingThreshhold)
+    {
+      feederMotor.set(0);
+    }
+    else
+    {
       feederMotor.set(PIDConstants.ShooterConstants.feederMotorSpeed);
     }
-    
     shooterNeo1.set(-output);
     shooterNeo2.set(-output);
     shooterNeo3.set(-output);

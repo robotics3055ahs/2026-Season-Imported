@@ -42,7 +42,7 @@ public class SwerveModule {
         ModuleConstants.kDModuleDriveController,
         new TrapezoidProfile.Constraints(
           DriveConstants.kMaxSpeedMetersPerSecond,
-          999999));//1000
+          1000));//1000
 
   private final SimpleMotorFeedforward m_driveFeedforward = 
       new SimpleMotorFeedforward(ModuleConstants.ksModuleDriveController, ModuleConstants.kvModuleDriveController);

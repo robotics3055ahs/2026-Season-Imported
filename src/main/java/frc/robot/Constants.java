@@ -85,8 +85,8 @@ public final class Constants {
     public static final double kVoltPerMeterPerSecond = 0.413;
 
     // ===== Speed Limits =====
-    public static double kMaxSpeedMetersPerSecond = 15;//5
-    public static final double kDriveMaxAcceleration = 9999999;
+    public static double kMaxSpeedMetersPerSecond = 12;//5
+    public static final double kDriveMaxAcceleration = 9;
   }
 
   // ============================================================================
@@ -94,8 +94,8 @@ public final class Constants {
   // ============================================================================
   public static final class ModuleConstants {
     // ===== Module Speed & Acceleration Constraints =====
-    public static final double kMaxModuleAngularSpeedRadiansPerSecond = 100 * Math.PI;//8
-    public static final double kMaxModuleAngularAccelerationRadiansPerSecondSquared = 6 * Math.PI;//4
+    public static final double kMaxModuleAngularSpeedRadiansPerSecond = 2 * Math.PI;//8
+    public static final double kMaxModuleAngularAccelerationRadiansPerSecondSquared = 0.5 * Math.PI;//4
 
     // ===== Encoder Configuration =====
     public static final int kEncoderCPR = 4096;
@@ -165,9 +165,9 @@ public final class Constants {
     // ===== Controller Ports =====
     public static final int kDriverControllerPort = 0;
     // ===== Controller Constants =====
-    public static final int driveForwardAxis = 1;
-    public static final int driveStrafeAxis = 0;
-    public static final int driveTurnAxis = 4;
+    public static final int driveForwardAxis = 5;
+    public static final int driveStrafeAxis = 4;
+    public static final int driveTurnAxis = 0;
     // Auto Selected
     public static int autoSelected = 0;
 
@@ -215,7 +215,7 @@ public final class Constants {
     }
     public static final class ShooterConstants { // 4 neo motors
       public static final double feederMotorSpeed = 1;
-      public static final double shooterSpeedRPM = 3500;
+      public static final double shooterSpeedRPM = 3300;
       public static final double feedingThreshholdRPM = 1000;
       public static final double IresetThreshold = 400;
       public static final double kP = 0;//0.00000001;

@@ -59,7 +59,7 @@ public class RobotContainer {
 
   // The driver's controller
   private static final XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
-  private static final DriveSubsystem m_robotDrive = new DriveSubsystem();
+  private static final DriveSubsystem m_robotDrive = new DriveSubsystem(m_driverController);
   PowerDistribution m_PDP = new PowerDistribution(OIConstants.pdpPort, ModuleType.kRev);
   private final PathMaker m_PathMaker = new PathMaker();
   private static final VisionSubsystem m_robotVision = new VisionSubsystem();
@@ -68,7 +68,7 @@ public class RobotContainer {
   private static final AnalogInput m_potADC = m_shooter.getPotADC();
   public static final AnalogPotentiometer m_potentiometer = m_shooter.getPotentiometer();
   public static final ADXRS450_Gyro m_gyro = m_robotDrive.getGyro();
-  private boolean m_fieldRelative = true;
+  private boolean m_fieldRelative = false;
   public ShuffleboardTab tab;
   // vision drive values
   double m_visionForward;
@@ -118,17 +118,20 @@ public RobotContainer() {
    */
   private void configureButtonBindings() {
     // Toggle swinger: if currently out, schedule SwingInCommand; otherwise schedule SwingOutCommand.
-    new JoystickButton(m_driverController, 5).toggleOnTrue(new IntakeKrakenCommand(m_shooter));
-    new JoystickButton(m_driverController, 6).toggleOnTrue(new ShootCommand(m_shooter));
+    new JoystickButton(m_driverController, 6).toggleOnTrue(new IntakeKrakenCommand(m_shooter));
+    new JoystickButton(m_driverController, 5).toggleOnTrue(new ShootCommand(m_shooter));
     new JoystickButton(m_driverController, 7).onTrue(new InstantCommand(() -> m_robotDrive.resetGyro()));
     new JoystickButton(m_driverController, 8).onTrue(new InstantCommand(() -> m_fieldRelative = !m_fieldRelative));
   }
 
   public void Drive(){
     // Calculate drivetrain commands from Joystick values
-    m_visionForward = Math.abs(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) > 0.05 ? -(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
-    m_visionStrafe = Math.abs(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) > 0.05 ? -(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
-    m_visionTurn = Math.abs(m_driverController.getRawAxis(OIConstants.driveTurnAxis)) > 0.05 ? -(m_driverController.getRawAxis(OIConstants.driveTurnAxis)) * DriveConstants.kMaxSpeedMetersPerSecond: 0;
+    m_visionForward = Math.abs(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) > 0.05 ? 
+      -(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
+    m_visionStrafe = Math.abs(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) > 0.05 ? 
+      -(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) * DriveConstants.kMaxSpeedMetersPerSecond : 0;
+    m_visionTurn = Math.abs(m_driverController.getRawAxis(OIConstants.driveTurnAxis)) > 0.05 ? 
+      -(m_driverController.getRawAxis(OIConstants.driveTurnAxis)) * DriveConstants.kMaxSpeedMetersPerSecond: 0;
   }
   
   public void VisionMoveToTarget() {

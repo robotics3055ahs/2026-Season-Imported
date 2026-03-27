@@ -156,7 +156,7 @@ public RobotContainer() {
       }
     }
     
-    // While button A is being pressed, auto align ANGLE to april tag
+    // While button X is being pressed, auto align ANGLE to april tag
     if (targetVisible && m_driverController.getXButton()) {
       if (m_fieldRelative) {
         m_fieldRelative = false;
@@ -167,7 +167,7 @@ public RobotContainer() {
       double turnOutput = m_visionTurnPID.calculate(targetYaw, 0);
       m_visionTurn = Math.abs(turnOutput) > VisionConstants.VISION_TURN_OUTPUT_DEADBAND ? turnOutput : 0;
     }
-    // While button B is being pressed, auto align STRAFE & FORWARD to april tag
+    // While button Y is being pressed, auto align STRAFE & FORWARD to april tag
     if (targetVisible && m_driverController.getYButton()) {
       if (m_fieldRelative) {
         m_fieldRelative = false;
@@ -184,10 +184,6 @@ public RobotContainer() {
       SmartDashboard.putBoolean("Field Relative?", m_fieldRelative);
       m_fieldRelative = true;
     }
-    // Command drivetrain motors based on target speeds
-    SmartDashboard.putNumber("forward", m_visionForward);
-    SmartDashboard.putNumber("strafe", m_visionStrafe);
-    SmartDashboard.putNumber("turn", m_visionTurn);
     SmartDashboard.putBoolean("wasFieldRelative ?", wasFieldRelative);
   }
 
@@ -247,11 +243,11 @@ public RobotContainer() {
       "Potentiometer Without Offset", 
       m_potentiometer
     );
-
-    SmartDashboard.putNumber("Forward", m_visionForward);
-    SmartDashboard.putNumber("Strafe", m_visionStrafe);
-    SmartDashboard.putNumber("Turn", m_visionTurn);
-    
+    SmartDashboard.putNumber("forward", m_visionForward);
+    SmartDashboard.putNumber("strafe", m_visionStrafe);
+    SmartDashboard.putNumber("turn", m_visionTurn);
+    SmartDashboard.putBoolean("Top Limit Switch", m_shooter.getTopLimitSwitch());
+    SmartDashboard.putBoolean("Bottom Limit Switch", m_shooter.getBottomLimitSwitch());
     SmartDashboard.putNumber("Shooter RPM", m_shooter.getShooterRPM());
     SmartDashboard.putNumber("Calculated Current Position", m_shooter.getCalculatedCurrentPosition());
   }
@@ -287,7 +283,6 @@ public RobotContainer() {
   public void periodic() {
     Drive();
     m_shooter.swingerHandler();
-    m_shooter.surplussShooter();
     updateDashboard();
     updateConstants();
     if(m_robotVision.cameraConnected){

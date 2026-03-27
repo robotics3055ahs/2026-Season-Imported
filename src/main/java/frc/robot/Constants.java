@@ -85,7 +85,8 @@ public final class Constants {
     public static final double kVoltPerMeterPerSecond = 0.413;
 
     // ===== Speed Limits =====
-    public static double kMaxSpeedMetersPerSecond = 10;//5
+    public static double kMaxSpeedMetersPerSecond = 15;//5
+    public static final double kDriveMaxAcceleration = 9999999;
   }
 
   // ============================================================================
@@ -186,9 +187,9 @@ public final class Constants {
   public static final class PIDConstants {
     public static final class IntakeSwingerConstants { // This motor is a neo
       public static final double swingerSpeed = 0.3;
-      public static final double kP = 0.000000;
-      public static final double kI = 0.000000000;
-      public static final double kD = 0.00000000000;
+      public static final double kP = 0.0004;
+      public static final double kI = 0.0000001;
+      public static final double kD = 0.00003;
       /*
       * pot range of motion = 270
       robot rang of motion = 180

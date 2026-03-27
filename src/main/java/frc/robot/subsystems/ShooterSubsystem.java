@@ -8,6 +8,7 @@ import edu.wpi.first.epilogue.Logged;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -51,6 +52,9 @@ public class ShooterSubsystem extends SubsystemBase {
   private static final SparkMax shooterNeo3 = new SparkMax(OIConstants.shooterMotorPort3, MotorType.kBrushless);
   private static final SparkFlex shooterNeo4 = new SparkFlex(OIConstants.shooterMotorPort4, MotorType.kBrushless);
   private static final Talon feederMotor = new Talon(OIConstants.FeederPort); 
+  private static final DigitalInput topArmLimitSwitch = new DigitalInput(0);
+  private static final DigitalInput bottomArmLimitSwitch = new DigitalInput(1);
+    
   private static final double sumOfShooterPIDS = 
   PIDConstants.ShooterConstants.kP 
   + PIDConstants.ShooterConstants.kI
@@ -111,16 +115,20 @@ public class ShooterSubsystem extends SubsystemBase {
    * Button B is for swing out
    */
   public void swingerHandler(){
-    double currentPosition = (m_potADC.getValue() / PIDConstants.IntakeSwingerConstants.potMaxValue) * PIDConstants.IntakeSwingerConstants.potentiometerDegrees; // Current Arm position in degrees
+    // double currentPosition = (m_potADC.getValue() / PIDConstants.IntakeSwingerConstants.potMaxValue) * PIDConstants.IntakeSwingerConstants.potentiometerDegrees; // Current Arm position in degrees
     if(m_driverController.getAButton()) // swing in if button A is held
     {
-       if(currentPosition >= PIDConstants.IntakeSwingerConstants.potMaxDegreesAllowed)
-        intakeSwinger.set(PIDConstants.IntakeSwingerConstants.swingerSpeed);
+      if(topArmLimitSwitch.get()) 
+        intakeSwinger.set(PIDConstants.IntakeSwingerConstants.swingerSpeed); // Since the default value of the limit switch is true when not pressed
+      else 
+        intakeSwinger.set(0); // Limit switch is pressed, so stop moving
     }
     else if (m_driverController.getBButton()) // swing out if button B is held
     {
-      if(currentPosition >= PIDConstants.IntakeSwingerConstants.potMinDegreesAllowed)
-        intakeSwinger.set(-PIDConstants.IntakeSwingerConstants.swingerSpeed);
+      if(bottomArmLimitSwitch.get()) // Since the default value of the limit switch is true when not pressed
+        intakeSwinger.set(-PIDConstants.IntakeSwingerConstants.swingerSpeed); 
+      else 
+        intakeSwinger.set(0); // Limist switch is pressed, so stop moving
     }
     else
     {
@@ -128,8 +136,12 @@ public class ShooterSubsystem extends SubsystemBase {
     }
   }
 
-  public void surplussShooter(){
-    
+  public boolean getTopLimitSwitch(){
+    return topArmLimitSwitch.get();
+  }
+
+  public boolean getBottomLimitSwitch(){
+    return bottomArmLimitSwitch.get();
   }
 
   public double getCalculatedCurrentPosition(){
@@ -165,16 +177,10 @@ public class ShooterSubsystem extends SubsystemBase {
     double targetRPM = PIDConstants.ShooterConstants.shooterSpeedRPM;
     double currentRPM = Math.abs(shooterNeo1.getEncoder().getVelocity());
     double feedingThreshhold = PIDConstants.ShooterConstants.feedingThreshholdRPM;
-    double output = kFeedForward;
+    double output = shooterPID.calculate(currentRPM, targetRPM) + kFeedForward;
     
     //if(currentRPM < targetRPM - PIDConstants.ShooterConstants.IresetThreshold)
     // shooterPID.reset();
-    if(m_driverController.getRightTriggerAxis() > 0.5)
-    {
-      output = kFeedForward + 0.25;
-      if(output > 1) output = 1;
-    }
-
     if(currentRPM < targetRPM - feedingThreshhold)
     {
       feederMotor.set(0);

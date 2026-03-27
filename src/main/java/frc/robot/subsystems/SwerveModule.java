@@ -162,7 +162,7 @@ public class SwerveModule {
   public void changeMaxSpeed(double Speed){
     m_drivePIDController.setConstraints(new TrapezoidProfile.Constraints(
       Speed,
-      1000));
+      DriveConstants.kDriveMaxAcceleration));
   }
 
   /** Zeroes all the SwerveModule encoders. */

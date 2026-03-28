@@ -118,8 +118,8 @@ public RobotContainer() {
    */
   private void configureButtonBindings() {
     // Toggle swinger: if currently out, schedule SwingInCommand; otherwise schedule SwingOutCommand.
-    new JoystickButton(m_driverController, 6).toggleOnTrue(new IntakeKrakenCommand(m_shooter));
-    new JoystickButton(m_driverController, 5).toggleOnTrue(new ShootCommand(m_shooter));
+    // new JoystickButton(m_driverController, 6).toggleOnTrue(new IntakeKrakenCommand(m_shooter));
+    // new JoystickButton(m_driverController, 5).toggleOnTrue(new ShootCommand(m_shooter));
     new JoystickButton(m_driverController, 7).onTrue(new InstantCommand(() -> m_robotDrive.resetGyro()));
     new JoystickButton(m_driverController, 8).onTrue(new InstantCommand(() -> m_fieldRelative = !m_fieldRelative));
   }
@@ -235,8 +235,8 @@ public RobotContainer() {
     SmartDashboard.putBoolean("Field Relative?", m_fieldRelative);
     SmartDashboard.putData("PDP Data", m_PDP);
     SmartDashboard.putData("Gyro", m_gyro);
-    SmartDashboard.putNumber("Match Time", Timer.getMatchTime());
-    SmartDashboard.putData("Drive Subsystem", m_robotDrive);
+    SmartDashboard.putBoolean("Is Shooter on?", m_shooter.isShooterOn());
+    SmartDashboard.putBoolean("Is Kraken On?", m_shooter.isKrakenOn());
     SmartDashboard.putData("M_potADC", m_potADC);
     SmartDashboard.putNumber(
       "Potentiometer Accounted for Offset", 
@@ -285,7 +285,19 @@ public RobotContainer() {
 
   public void periodic() {
     Drive();
+    if(m_driverController.getLeftTriggerAxis()>0.5)
+    {
+      SmartDashboard.putBoolean("Is Shooter Low Speed?", true);
+      PIDConstants.ShooterConstants.shooterSpeedRPM = 2500;
+    }
+    else
+    {
+      SmartDashboard.putBoolean("Is Shooter Low Speed?", false);
+      PIDConstants.ShooterConstants.shooterSpeedRPM = 3000;
+    }
     m_shooter.swingerHandler();
+    m_shooter.shooterHandler();
+    m_shooter.krakenHandler();
     updateDashboard();
     updateConstants();
     if(m_robotVision.cameraConnected){

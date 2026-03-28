@@ -54,6 +54,8 @@ public class ShooterSubsystem extends SubsystemBase {
   private static final Talon feederMotor = new Talon(OIConstants.FeederPort); 
   private static final DigitalInput topArmLimitSwitch = new DigitalInput(0);
   private static final DigitalInput bottomArmLimitSwitch = new DigitalInput(1);
+  private static boolean shooterOn = false;
+  private static boolean krakenOn = false;
     
   private static final double sumOfShooterPIDS = 
   PIDConstants.ShooterConstants.kP 
@@ -74,7 +76,16 @@ public class ShooterSubsystem extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
   public ShooterSubsystem(XboxController driveController) {
     m_driverController = driveController;
+    calculateFeedForwardForShooter();
     // Configure the shooter motors to follow each other
+    
+    //shooterNeo1.setInverted(true);
+    //shooterNeo2.setInverted(true);
+    //shooterNeo4.setInverted(true);
+    
+  }
+
+  public void calculateFeedForwardForShooter(){
     NeoResponse[] neoLookupTable = 
     {
       new NeoResponse(0.05, 250),
@@ -103,10 +114,6 @@ public class ShooterSubsystem extends SubsystemBase {
     index += (neoLookupTable[i].neoRPM <= PIDConstants.ShooterConstants.shooterSpeedRPM) ? 1: 0;   
     
     kFeedForward = neoLookupTable[index].power;
-    //shooterNeo1.setInverted(true);
-    //shooterNeo2.setInverted(true);
-    //shooterNeo4.setInverted(true);
-    
   }
 
   /**
@@ -135,6 +142,29 @@ public class ShooterSubsystem extends SubsystemBase {
       intakeSwinger.stopMotor();
     }
   }
+
+  public void shooterHandler(){
+    if(m_driverController.getLeftBumperButtonPressed())
+      shooterOn = !shooterOn;
+    
+    if(shooterOn)
+      shoot();
+    else
+      stopShooter();
+  }
+
+  public void krakenHandler(){
+    if(m_driverController.getRightBumperButtonPressed())
+      krakenOn = !krakenOn;
+
+    if(krakenOn)
+      enableIntakeKraken();
+    else
+      disableIntakeKraken();
+  }
+
+  public boolean isKrakenOn(){return krakenOn;}
+  public boolean isShooterOn(){return shooterOn;}
 
   public boolean getTopLimitSwitch(){
     return topArmLimitSwitch.get();
@@ -174,13 +204,15 @@ public class ShooterSubsystem extends SubsystemBase {
   * Shoot
   */
   public void shoot() {
+    calculateFeedForwardForShooter();
     double targetRPM = PIDConstants.ShooterConstants.shooterSpeedRPM;
     double currentRPM = Math.abs(shooterNeo1.getEncoder().getVelocity());
     double feedingThreshhold = PIDConstants.ShooterConstants.feedingThreshholdRPM;
     double output = shooterPID.calculate(currentRPM, targetRPM) + kFeedForward;
     
-    //if(currentRPM < targetRPM - PIDConstants.ShooterConstants.IresetThreshold)
-    // shooterPID.reset();
+    if(currentRPM > targetRPM - PIDConstants.ShooterConstants.IresetThreshold)
+      shooterPID.reset();
+    
     if(currentRPM < targetRPM - feedingThreshhold)
     {
       feederMotor.set(0);

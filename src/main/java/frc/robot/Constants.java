@@ -94,8 +94,8 @@ public final class Constants {
   // ============================================================================
   public static final class ModuleConstants {
     // ===== Module Speed & Acceleration Constraints =====
-    public static final double kMaxModuleAngularSpeedRadiansPerSecond = 90 * Math.PI;//8
-    public static final double kMaxModuleAngularAccelerationRadiansPerSecondSquared = 25 * Math.PI;//4
+    public static final double kMaxModuleAngularSpeedRadiansPerSecond = 60 * Math.PI;//8
+    public static final double kMaxModuleAngularAccelerationRadiansPerSecondSquared = 22 * Math.PI;//4
 
     // ===== Encoder Configuration =====
     public static final int kEncoderCPR = 4096;
@@ -215,7 +215,7 @@ public final class Constants {
     }
     public static final class ShooterConstants { // 4 neo motors
       public static final double feederMotorSpeed = 1;
-      public static final double shooterSpeedRPM = 3300;
+      public static double shooterSpeedRPM = 3300;
       public static final double feedingThreshholdRPM = 1000;
       public static final double IresetThreshold = 400;
       public static final double kP = 0;//0.00000001;

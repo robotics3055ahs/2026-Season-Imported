@@ -63,18 +63,6 @@
         ],
         "containers": [
           {
-            "title": "Drive Subsystem",
-            "x": 0.0,
-            "y": 0.0,
-            "width": 256.0,
-            "height": 128.0,
-            "type": "Subsystem",
-            "properties": {
-              "topic": "/SmartDashboard/Drive Subsystem",
-              "period": 0.06
-            }
-          },
-          {
             "title": "Gyro",
             "x": 256.0,
             "y": 0.0,
@@ -89,8 +77,8 @@
           },
           {
             "title": "Camera Connected",
-            "x": 0.0,
-            "y": 256.0,
+            "x": 128.0,
+            "y": 128.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Boolean Box",
@@ -138,7 +126,7 @@
           {
             "title": "wasFieldRelative ?",
             "x": 128.0,
-            "y": 128.0,
+            "y": 0.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Boolean Box",
@@ -150,18 +138,6 @@
               "false_color": 4294198070,
               "true_icon": "None",
               "false_icon": "None"
-            }
-          },
-          {
-            "title": "PDP Data",
-            "x": 896.0,
-            "y": 0.0,
-            "width": 384.0,
-            "height": 512.0,
-            "type": "PowerDistribution",
-            "properties": {
-              "topic": "/SmartDashboard/PDP Data",
-              "period": 0.06
             }
           },
           {
@@ -236,8 +212,8 @@
           },
           {
             "title": "Shooter RPM",
-            "x": 128.0,
-            "y": 384.0,
+            "x": 0.0,
+            "y": 0.0,
             "width": 128.0,
             "height": 128.0,
             "type": "Text Display",
@@ -260,6 +236,99 @@
               "period": 0.06,
               "data_type": "double",
               "show_submit_button": false
+            }
+          },
+          {
+            "title": "Bottom Limit Switch",
+            "x": 896.0,
+            "y": 128.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/SmartDashboard/Bottom Limit Switch",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "Top Limit Switch",
+            "x": 896.0,
+            "y": 0.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/SmartDashboard/Top Limit Switch",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
+            }
+          },
+          {
+            "title": "forward",
+            "x": 1024.0,
+            "y": 0.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/forward",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "strafe",
+            "x": 1024.0,
+            "y": 128.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/strafe",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "turn",
+            "x": 1024.0,
+            "y": 256.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Text Display",
+            "properties": {
+              "topic": "/SmartDashboard/turn",
+              "period": 0.06,
+              "data_type": "double",
+              "show_submit_button": false
+            }
+          },
+          {
+            "title": "Is Shooter Low Speed?",
+            "x": 896.0,
+            "y": 256.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "Boolean Box",
+            "properties": {
+              "topic": "/SmartDashboard/Is Shooter Low Speed?",
+              "period": 0.06,
+              "data_type": "boolean",
+              "true_color": 4283215696,
+              "false_color": 4294198070,
+              "true_icon": "None",
+              "false_icon": "None"
             }
           }
         ]

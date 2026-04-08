@@ -215,7 +215,7 @@ public final class Constants {
     }
     public static final class ShooterConstants { // 4 neo motors
       public static final double feederMotorSpeed = 1;
-      public static double shooterSpeedRPM = 3300;
+      public static double shooterSpeedRPM = 2900;
       public static final double feedingThreshholdRPM = 1000;
       public static final double IresetThreshold = 400;
       public static final double kP = 0;//0.00000001;

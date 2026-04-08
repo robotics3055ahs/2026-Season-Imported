@@ -23,8 +23,6 @@ import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.ShooterSubsystem.NeoResponse;
 import frc.robot.commands.driveCommands.MoveToPosition;
 import frc.robot.commands.PathMaker;
-import frc.robot.commands.ShootCommand;
-import frc.robot.commands.IntakeKrakenCommand;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
@@ -46,6 +44,9 @@ import java.util.ArrayList;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonTrackedTarget;
+
+import com.studica.frc.AHRS;
+
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 
 /*
@@ -67,8 +68,9 @@ public class RobotContainer {
   private static final ShooterSubsystem m_shooter = new ShooterSubsystem(m_driverController);
   private static final AnalogInput m_potADC = m_shooter.getPotADC();
   public static final AnalogPotentiometer m_potentiometer = m_shooter.getPotentiometer();
-  public static final ADXRS450_Gyro m_gyro = m_robotDrive.getGyro();
-  private boolean m_fieldRelative = false;
+  public static final AHRS m_gyro = m_robotDrive.getGyro();
+  public static final double originalRPM = PIDConstants.ShooterConstants.shooterSpeedRPM;
+  private boolean m_fieldRelative = true;
   public ShuffleboardTab tab;
   // vision drive values
   double m_visionForward;
@@ -126,11 +128,11 @@ public RobotContainer() {
 
   public void Drive(){
     // Calculate drivetrain commands from Joystick values
-    m_visionForward = Math.abs(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) > 0.05 ? 
+    m_visionForward = Math.abs(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) > 0.005 ? 
       -(m_driverController.getRawAxis(OIConstants.driveForwardAxis)) * 8 : 0;
-    m_visionStrafe = Math.abs(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) > 0.05 ? 
+    m_visionStrafe = Math.abs(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) > 0.005 ? 
       -(m_driverController.getRawAxis(OIConstants.driveStrafeAxis)) * 8 : 0;
-    m_visionTurn = Math.abs(m_driverController.getRawAxis(OIConstants.driveTurnAxis)) > 0.05 ? 
+    m_visionTurn = Math.abs(m_driverController.getRawAxis(OIConstants.driveTurnAxis)) > 0.005 ? 
       -(m_driverController.getRawAxis(OIConstants.driveTurnAxis)) * DriveConstants.kMaxSpeedMetersPerSecond: 0;
   }
   
@@ -253,6 +255,7 @@ public RobotContainer() {
     SmartDashboard.putBoolean("Bottom Limit Switch", m_shooter.getBottomLimitSwitch());
     SmartDashboard.putNumber("Shooter RPM", m_shooter.getShooterRPM());
     SmartDashboard.putNumber("Calculated Current Position", m_shooter.getCalculatedCurrentPosition());
+    SmartDashboard.putNumber("Target RPM", PIDConstants.ShooterConstants.shooterSpeedRPM);
   }
 
   public void updateConstants(){
@@ -285,16 +288,6 @@ public RobotContainer() {
 
   public void periodic() {
     Drive();
-    if(m_driverController.getLeftTriggerAxis()>0.5)
-    {
-      SmartDashboard.putBoolean("Is Shooter Low Speed?", true);
-      PIDConstants.ShooterConstants.shooterSpeedRPM = 2500;
-    }
-    else
-    {
-      SmartDashboard.putBoolean("Is Shooter Low Speed?", false);
-      PIDConstants.ShooterConstants.shooterSpeedRPM = 3000;
-    }
     m_shooter.swingerHandler();
     m_shooter.shooterHandler();
     m_shooter.krakenHandler();

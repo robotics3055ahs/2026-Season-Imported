@@ -18,6 +18,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
+import com.studica.frc.AHRS;
 
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import frc.robot.Constants;
@@ -80,7 +81,7 @@ public class DriveSubsystem extends SubsystemBase {
   */
   
   // The gyro sensor
-  private static final ADXRS450_Gyro m_gyro = new ADXRS450_Gyro();
+  private static final AHRS m_gyro = new AHRS(AHRS.NavXComType.kMXP_SPI);
   
   private Pose2d relativePose = new Pose2d();
 
@@ -99,7 +100,7 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
-    m_gyro.calibrate();
+    m_gyro.reset();
   }
 
   
@@ -163,7 +164,7 @@ public class DriveSubsystem extends SubsystemBase {
   public void resetGyro() {
     m_gyro.reset();
   }
-  public ADXRS450_Gyro getGyro() {
+  public AHRS getGyro() {
     return m_gyro;
   }
 

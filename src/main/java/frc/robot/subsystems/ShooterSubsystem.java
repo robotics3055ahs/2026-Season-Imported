@@ -56,6 +56,8 @@ public class ShooterSubsystem extends SubsystemBase {
   private static final DigitalInput bottomArmLimitSwitch = new DigitalInput(1);
   private static boolean shooterOn = false;
   private static boolean krakenOn = false;
+  private static double intakeKrakenSpeed = -1;
+  private static double ballRollerSpeed = -0.5;
     
   private static final double sumOfShooterPIDS = 
   PIDConstants.ShooterConstants.kP 
@@ -146,7 +148,10 @@ public class ShooterSubsystem extends SubsystemBase {
   public void shooterHandler(){
     if(m_driverController.getLeftBumperButtonPressed())
       shooterOn = !shooterOn;
-    
+
+    if(m_driverController.getLeftTriggerAxis()>0.5) PIDConstants.ShooterConstants.shooterSpeedRPM = 2200;
+    else PIDConstants.ShooterConstants.shooterSpeedRPM = 2900;
+
     if(shooterOn)
       shoot();
     else
@@ -156,6 +161,12 @@ public class ShooterSubsystem extends SubsystemBase {
   public void krakenHandler(){
     if(m_driverController.getRightBumperButtonPressed())
       krakenOn = !krakenOn;
+    
+    if(m_driverController.getXButton())
+    {
+      intakeKrakenSpeed *= -1;
+      ballRollerSpeed *= -1;
+    }
 
     if(krakenOn)
       enableIntakeKraken();
@@ -179,18 +190,20 @@ public class ShooterSubsystem extends SubsystemBase {
   }
 
   public void enableIntakeKraken(){
-    intakeRunnerKraken.set(-1);
+    intakeRunnerKraken.set(intakeKrakenSpeed);
+    rollBalls();
   }
 
   public void disableIntakeKraken(){
     intakeRunnerKraken.set(0);
+    stopRoller();
   }
   
   /**
   * Roll the balls into the shooter
   */
   public void rollBalls() {
-    ballRoller.set(-0.5);
+    ballRoller.set(ballRollerSpeed);
   }
   
   /**
@@ -210,8 +223,7 @@ public class ShooterSubsystem extends SubsystemBase {
     double feedingThreshhold = PIDConstants.ShooterConstants.feedingThreshholdRPM;
     double output = shooterPID.calculate(currentRPM, targetRPM) + kFeedForward;
     
-    if(currentRPM > targetRPM - PIDConstants.ShooterConstants.IresetThreshold)
-      shooterPID.reset();
+    if(currentRPM > targetRPM - PIDConstants.ShooterConstants.IresetThreshold) shooterPID.reset();
     
     if(currentRPM < targetRPM - feedingThreshhold)
     {
